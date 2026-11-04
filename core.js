@@ -1,5 +1,5 @@
 const supabaseUrl = 'https://fwxraksvzrofgjbqvplm.supabase.co';
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Paste your actual key here before committing if possible
+const supabaseKey = 'sb_publishable_Fc7hos5g-BoT0cVWBnVWSQ_IC8OdPAh'; // Paste your actual key here before committing if possible
 
 let supabaseClient = null;
 function getSupabase() {
