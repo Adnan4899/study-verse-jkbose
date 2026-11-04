@@ -88,24 +88,6 @@ async function registerStudent() {
         }
 
         // Student profile is created automatically by the database trigger.
-            const { error: profileError } = await db
-                .from('profiles')
-                .upsert({
-                    id: data.user.id,
-                    email: email,
-                    full_name: name,
-                    class_level: studentClass,
-                    role: 'STUDENT',
-                    status: 'PENDING'
-                }, { onConflict: 'id' });
-
-            if (profileError) {
-                console.error(profileError);
-                uiAction('Account created, but profile setup needs attention.');
-                return;
-            }
-        }
-
         uiAction(
             data.session
                 ? 'Registration successful. Your account awaits approval.'
