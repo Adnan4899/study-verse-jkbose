@@ -87,7 +87,7 @@ async function registerStudent() {
             throw new Error('Registration could not be completed.');
         }
 
-        if (data.session) {
+        // Student profile is created automatically by the database trigger.
             const { error: profileError } = await db
                 .from('profiles')
                 .upsert({
