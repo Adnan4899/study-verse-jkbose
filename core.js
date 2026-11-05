@@ -1550,7 +1550,7 @@ function initializeFounderEditor() {
     const saveButton = getElement("founderSaveButton");
 
     if (saveButton) {
-        saveButton.addEventListener("click", saveFounderProfile);
+    saveButton.addEventListener("click", saveFounderProfileWithImage);
     }
 
     const resetButton = getElement("founderCropReset");
