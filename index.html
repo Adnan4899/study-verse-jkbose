@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#090d1b">
   <meta name="description" content="Study Verse — Learn, Explore and Evolve with a global learning ecosystem.">
+  <meta name="author" content="Adnan Manzoor">
   <title>Study Verse — Learn • Explore • Evolve</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="premium.css">
 </head>
 
@@ -26,12 +27,14 @@
     </div>
   </section>
 
-  <!-- INTRODUCTION / ONBOARDING -->
+  <!-- ONBOARDING -->
   <section id="onboardingScreen" class="onboarding-screen hidden">
     <div class="onboarding-content">
       <div class="brand-symbol">S</div>
       <span class="eyebrow">YOUR LEARNING JOURNEY STARTS HERE</span>
+
       <h1>One world.<br><span>Unlimited learning.</span></h1>
+
       <p>
         Discover knowledge, build skills, explore new ideas and make
         learning part of your everyday life.
@@ -45,6 +48,7 @@
             <small>Explore subjects and learning resources.</small>
           </div>
         </div>
+
         <div class="intro-feature">
           <span>◎</span>
           <div>
@@ -52,6 +56,7 @@
             <small>Build a learning experience around your goals.</small>
           </div>
         </div>
+
         <div class="intro-feature">
           <span>↗</span>
           <div>
@@ -81,10 +86,14 @@
 
       <div class="topbar-actions">
         <span id="connectionStatus" class="connection-status">Connecting...</span>
-        <button class="icon-btn" type="button" aria-label="Notifications" title="Notifications">
+
+        <button class="icon-btn" type="button"
+          aria-label="Notifications" title="Notifications">
           ♧
         </button>
-        <button class="avatar-btn" type="button" onclick="navigateTo('profileView')" aria-label="Open profile">
+
+        <button class="avatar-btn" type="button"
+          onclick="navigateTo('profileView')" aria-label="Open profile">
           A
         </button>
       </div>
@@ -95,6 +104,7 @@
 
       <!-- HOME -->
       <section id="homeView" class="app-view active">
+
         <div class="welcome-section">
           <div>
             <span class="eyebrow">YOUR PERSONAL LEARNING SPACE</span>
@@ -112,10 +122,12 @@
               Access learning resources, explore new subjects and
               develop skills for your future.
             </p>
+
             <button class="primary-btn" onclick="navigateTo('libraryView')">
               Explore Library <span>→</span>
             </button>
           </div>
+
           <div class="hero-art" aria-hidden="true">
             <div class="orbit orbit-one"></div>
             <div class="orbit orbit-two"></div>
@@ -133,6 +145,7 @@
         </div>
 
         <div class="feature-grid">
+
           <article class="feature-card" onclick="navigateTo('libraryView')">
             <div class="feature-icon">▤</div>
             <h3>Global Library</h3>
@@ -160,6 +173,14 @@
             <p>A space for your learning plans and study goals.</p>
             <span class="coming-label">Coming soon</span>
           </article>
+
+          <article class="feature-card" onclick="navigateTo('founderView')">
+            <div class="feature-icon">✧</div>
+            <h3>Meet the Founder</h3>
+            <p>Discover the person and vision behind Study Verse.</p>
+            <span class="card-arrow">Explore →</span>
+          </article>
+
         </div>
 
         <div class="section-heading">
@@ -179,10 +200,12 @@
           </div>
           <span class="banner-symbol">∞</span>
         </div>
+
       </section>
 
       <!-- GLOBAL LIBRARY -->
       <section id="libraryView" class="app-view">
+
         <div class="page-heading">
           <span class="eyebrow">KNOWLEDGE COLLECTION</span>
           <h1>Global Library</h1>
@@ -190,12 +213,8 @@
         </div>
 
         <div class="library-toolbar">
-          <input
-            type="search"
-            id="librarySearch"
-            placeholder="Search resources..."
-            aria-label="Search resources"
-          >
+          <input type="search" id="librarySearch"
+            placeholder="Search resources..." aria-label="Search resources">
 
           <select id="libraryCategory" aria-label="Select resource category">
             <option value="">All categories</option>
@@ -220,10 +239,12 @@
             <p>Published learning resources will appear here.</p>
           </div>
         </div>
+
       </section>
 
       <!-- LEARNING SPACE -->
       <section id="learnView" class="app-view">
+
         <div class="page-heading">
           <span class="eyebrow">EXPLORE AND GROW</span>
           <h1>Learning Space</h1>
@@ -231,6 +252,7 @@
         </div>
 
         <div class="learning-grid">
+
           <article class="learning-card">
             <span class="learning-icon">⌘</span>
             <h3>Technology</h3>
@@ -272,6 +294,7 @@
             <p>Build communication, creativity and professional skills.</p>
             <span class="coming-label">Learning content coming soon</span>
           </article>
+
         </div>
 
         <div class="info-banner">
@@ -284,10 +307,12 @@
           </div>
           <span class="banner-symbol">✦</span>
         </div>
+
       </section>
 
       <!-- PRACTICE AND TESTS -->
       <section id="testsView" class="app-view">
+
         <div class="page-heading">
           <span class="eyebrow">TEST YOUR KNOWLEDGE</span>
           <h1>Practice & Tests</h1>
@@ -295,6 +320,7 @@
         </div>
 
         <div class="practice-grid">
+
           <article class="practice-card">
             <div class="feature-icon">?</div>
             <h3>Knowledge Quizzes</h3>
@@ -315,11 +341,14 @@
             <p>Review important concepts and key terms.</p>
             <span class="coming-label">Coming soon</span>
           </article>
+
         </div>
+
       </section>
 
       <!-- PROFILE -->
       <section id="profileView" class="app-view">
+
         <div class="page-heading">
           <span class="eyebrow">YOUR ACCOUNT</span>
           <h1>Profile</h1>
@@ -361,24 +390,17 @@
           </div>
 
           <!-- LOGIN FORM -->
-          <form id="loginForm" onsubmit="event.preventDefault(); loginStudent();">
+          <form id="loginForm"
+            onsubmit="event.preventDefault(); loginStudent();">
+
             <label for="loginEmail">Email address</label>
-            <input
-              id="loginEmail"
-              type="email"
-              placeholder="Enter your email"
-              autocomplete="email"
-              required
-            >
+            <input id="loginEmail" type="email"
+              placeholder="Enter your email" autocomplete="email" required>
 
             <label for="loginPass">Password</label>
-            <input
-              id="loginPass"
-              type="password"
+            <input id="loginPass" type="password"
               placeholder="Enter your password"
-              autocomplete="current-password"
-              required
-            >
+              autocomplete="current-password" required>
 
             <button id="loginBtn" class="primary-btn full-btn" type="submit">
               Sign in
@@ -386,49 +408,39 @@
 
             <p class="auth-switch">
               New to Study Verse?
-              <button type="button" class="text-btn" onclick="toggleAuthMode()">
+              <button type="button" class="text-btn"
+                onclick="toggleAuthMode('register')">
                 Create an account
               </button>
             </p>
+
+            <button type="button" class="text-btn"
+              onclick="resetStudentPassword()">
+              Forgot password?
+            </button>
+
           </form>
 
           <!-- REGISTRATION FORM -->
-          <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerStudent();">
+          <form id="registerForm" class="hidden"
+            onsubmit="event.preventDefault(); registerStudent();">
+
             <label for="regName">Full name</label>
-            <input
-              id="regName"
-              type="text"
-              placeholder="Enter your full name"
-              autocomplete="name"
-              required
-            >
+            <input id="regName" type="text"
+              placeholder="Enter your full name" autocomplete="name" required>
 
             <label for="regClass">Learning level / class</label>
-            <input
-              id="regClass"
-              type="text"
-              placeholder="Example: School, College, University"
-              required
-            >
+            <input id="regClass" type="text"
+              placeholder="Example: School, College, University" required>
 
             <label for="regEmail">Email address</label>
-            <input
-              id="regEmail"
-              type="email"
-              placeholder="Enter your email"
-              autocomplete="email"
-              required
-            >
+            <input id="regEmail" type="email"
+              placeholder="Enter your email" autocomplete="email" required>
 
             <label for="regPass">Create password</label>
-            <input
-              id="regPass"
-              type="password"
+            <input id="regPass" type="password"
               placeholder="Create a password"
-              autocomplete="new-password"
-              minlength="6"
-              required
-            >
+              autocomplete="new-password" minlength="6" required>
 
             <button id="regBtn" class="primary-btn full-btn" type="submit">
               Create account
@@ -441,20 +453,99 @@
 
             <p class="auth-switch">
               Already registered?
-              <button type="button" class="text-btn" onclick="toggleAuthMode()">
+              <button type="button" class="text-btn"
+                onclick="toggleAuthMode('login')">
                 Sign in
               </button>
             </p>
+
           </form>
 
-          <button type="button" class="secondary-btn full-btn" onclick="logoutStudent()">
+          <button type="button" class="secondary-btn full-btn"
+            onclick="logoutStudent()">
             Sign out
           </button>
         </div>
+
+      </section>
+
+      <!-- PUBLIC FOUNDER PROFILE -->
+      <section id="founderView" class="app-view">
+
+        <div class="page-heading">
+          <span class="eyebrow">THE STORY BEHIND THE PLATFORM</span>
+          <h1>Meet the Founder</h1>
+          <p>The person, purpose and vision behind Study Verse.</p>
+        </div>
+
+        <div class="founder-public-card">
+
+          <div class="founder-public-image-wrap">
+            <img id="founderPublicImage"
+              class="hidden"
+              alt="Study Verse Founder portrait">
+          </div>
+
+          <div class="founder-public-details">
+            <span class="eyebrow">FOUNDER OF STUDY VERSE</span>
+
+            <h2 id="founderPublicName">Adnan Manzoor</h2>
+
+            <p id="founderPublicDesignation">Founder & Creator</p>
+
+            <div class="founder-public-biography">
+              <h3>About</h3>
+              <p id="founderPublicBiography">
+                The Founder profile will be available here soon.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="founder-information-grid">
+
+          <article class="info-banner">
+            <div>
+              <span class="eyebrow">THE BIGGER PICTURE</span>
+              <h3>Vision</h3>
+              <p id="founderPublicVision">
+                To make learning more accessible and meaningful for
+                learners everywhere.
+              </p>
+            </div>
+            <span class="banner-symbol">∞</span>
+          </article>
+
+          <article class="info-banner">
+            <div>
+              <span class="eyebrow">OUR PURPOSE</span>
+              <h3>Mission</h3>
+              <p id="founderPublicMission">
+                To build a learning ecosystem that helps people discover
+                knowledge and develop their potential.
+              </p>
+            </div>
+            <span class="banner-symbol">✦</span>
+          </article>
+
+        </div>
+
+        <div class="founder-social-section">
+          <h3>Connect</h3>
+          <div id="founderPublicSocialLinks" class="founder-social-links"></div>
+        </div>
+
+        <button class="secondary-btn" type="button"
+          onclick="navigateTo('homeView')">
+          ← Back to Home
+        </button>
+
       </section>
 
       <!-- ADMIN DASHBOARD -->
       <section id="adminView" class="app-view">
+
         <div class="page-heading">
           <span class="eyebrow">PLATFORM MANAGEMENT</span>
           <h1>Admin Dashboard</h1>
@@ -462,6 +553,7 @@
         </div>
 
         <div class="admin-stats">
+
           <article class="stat-card">
             <span>Total users</span>
             <strong id="adminTotalUsers">0</strong>
@@ -486,35 +578,37 @@
             <span>Suspended</span>
             <strong id="adminSuspendedUsers">0</strong>
           </article>
+
         </div>
 
         <div class="admin-management">
+
           <div class="admin-toolbar">
             <div>
               <h2>Learner management</h2>
               <p>Review account applications and access status.</p>
             </div>
 
-            <button class="secondary-btn" type="button" onclick="loadAdminDashboard()">
+            <button class="secondary-btn" type="button"
+              onclick="loadAdminDashboard()">
               ↻ Refresh
             </button>
           </div>
 
           <div class="admin-filters">
-            <input
-              id="adminStudentSearch"
-              type="search"
-              placeholder="Search learners..."
-              aria-label="Search learners"
-            >
 
-            <select id="adminStatusFilter" aria-label="Filter by account status">
+            <input id="adminStudentSearch" type="search"
+              placeholder="Search learners..." aria-label="Search learners">
+
+            <select id="adminStatusFilter"
+              aria-label="Filter by account status">
               <option value="">All statuses</option>
               <option value="PENDING">Pending</option>
               <option value="APPROVED">Approved</option>
               <option value="REJECTED">Rejected</option>
               <option value="SUSPENDED">Suspended</option>
             </select>
+
           </div>
 
           <div id="adminStudentList" class="admin-student-list">
@@ -523,45 +617,186 @@
               <p>Administrator access is required to manage accounts.</p>
             </div>
           </div>
+
         </div>
+
+        <!-- FOUNDER PROFILE ADMIN EDITOR -->
+        <div class="admin-management founder-admin-editor">
+
+          <div class="admin-toolbar">
+            <div>
+              <span class="eyebrow">PLATFORM IDENTITY</span>
+              <h2>Founder Profile Editor</h2>
+              <p>Manage the public Founder profile displayed on Study Verse.</p>
+            </div>
+
+            <button class="secondary-btn" type="button"
+              onclick="loadFounderEditor()">
+              ↻ Load profile
+            </button>
+          </div>
+
+          <div class="founder-editor-form">
+
+            <label for="founderNameInput">Founder name</label>
+            <input id="founderNameInput" type="text"
+              placeholder="Enter founder name">
+
+            <label for="founderDesignationInput">Designation</label>
+            <input id="founderDesignationInput" type="text"
+              placeholder="Founder & Creator">
+
+            <label for="founderBiographyInput">Biography</label>
+            <textarea id="founderBiographyInput" rows="5"
+              placeholder="Write the founder biography..."></textarea>
+
+            <label for="founderVisionInput">Vision</label>
+            <textarea id="founderVisionInput" rows="4"
+              placeholder="Write the platform vision..."></textarea>
+
+            <label for="founderMissionInput">Mission</label>
+            <textarea id="founderMissionInput" rows="4"
+              placeholder="Write the platform mission..."></textarea>
+
+            <div class="founder-editor-divider"></div>
+
+            <h3>Social and website links</h3>
+
+            <label for="founderWebsiteInput">Website</label>
+            <input id="founderWebsiteInput" type="url"
+              placeholder="https://example.com">
+
+            <label for="founderInstagramInput">Instagram</label>
+            <input id="founderInstagramInput" type="url"
+              placeholder="https://instagram.com/username">
+
+            <label for="founderLinkedInInput">LinkedIn</label>
+            <input id="founderLinkedInInput" type="url"
+              placeholder="https://linkedin.com/in/username">
+
+            <label for="founderYouTubeInput">YouTube</label>
+            <input id="founderYouTubeInput" type="url"
+              placeholder="https://youtube.com/@username">
+
+            <label for="founderXInput">X</label>
+            <input id="founderXInput" type="url"
+              placeholder="https://x.com/username">
+
+            <div class="founder-editor-divider"></div>
+
+            <h3>Founder portrait</h3>
+            <p>
+              Select a JPG, PNG or WebP image. Maximum file size: 5 MB.
+            </p>
+
+            <label for="founderImageInput">Choose image</label>
+            <input id="founderImageInput" type="file"
+              accept="image/jpeg,image/png,image/webp">
+
+            <div class="founder-image-preview-area">
+              <img id="founderEditorPreview"
+                class="hidden"
+                alt="Founder image preview">
+            </div>
+
+            <!-- IMAGE CROPPING CONTROLS -->
+            <div id="founderCropPanel" class="founder-crop-panel hidden">
+
+              <h3>Adjust your portrait</h3>
+
+              <p>Use the controls to position and zoom your image.</p>
+
+              <div class="founder-crop-canvas-wrap">
+                <canvas id="founderCropCanvas"
+                  width="500" height="500"
+                  aria-label="Circular founder image crop preview">
+                </canvas>
+              </div>
+
+              <label for="founderZoom">Zoom</label>
+              <input id="founderZoom" type="range"
+                min="1" max="3" step="0.05" value="1">
+
+              <label for="founderPositionX">Horizontal position</label>
+              <input id="founderPositionX" type="range"
+                min="0" max="100" value="50">
+
+              <label for="founderPositionY">Vertical position</label>
+              <input id="founderPositionY" type="range"
+                min="0" max="100" value="50">
+
+              <button id="founderCropReset"
+                class="secondary-btn" type="button">
+                Reset crop
+              </button>
+
+            </div>
+
+            <div class="founder-publish-control">
+              <label for="founderPublishToggle">
+                Publish Founder profile
+              </label>
+
+              <input id="founderPublishToggle" type="checkbox">
+
+              <p id="founderPublishStatus">Not published</p>
+            </div>
+
+            <button id="founderSaveButton"
+              class="primary-btn full-btn" type="button">
+              Save Founder Profile
+            </button>
+
+          </div>
+
+        </div>
+
       </section>
 
     </main>
 
     <!-- BOTTOM NAVIGATION -->
     <nav id="bottomNav" class="bottom-nav" aria-label="Main navigation">
-      <button class="tab-item active" type="button" data-view="homeView" onclick="navigateTo('homeView')">
+
+      <button class="tab-item active" type="button"
+        data-view="homeView" onclick="navigateTo('homeView')">
         <span class="tab-icon">⌂</span>
         <span>Home</span>
       </button>
 
-      <button class="tab-item" type="button" data-view="libraryView" onclick="navigateTo('libraryView')">
+      <button class="tab-item" type="button"
+        data-view="libraryView" onclick="navigateTo('libraryView')">
         <span class="tab-icon">▤</span>
         <span>Library</span>
       </button>
 
-      <button class="tab-item" type="button" data-view="learnView" onclick="navigateTo('learnView')">
+      <button class="tab-item" type="button"
+        data-view="learnView" onclick="navigateTo('learnView')">
         <span class="tab-icon">✦</span>
         <span>Learn</span>
       </button>
 
-      <button class="tab-item" type="button" data-view="testsView" onclick="navigateTo('testsView')">
+      <button class="tab-item" type="button"
+        data-view="testsView" onclick="navigateTo('testsView')">
         <span class="tab-icon">◈</span>
         <span>Practice</span>
       </button>
 
-      <button class="tab-item" type="button" data-view="profileView" onclick="navigateTo('profileView')">
+      <button class="tab-item" type="button"
+        data-view="profileView" onclick="navigateTo('profileView')">
         <span class="tab-icon">◎</span>
         <span>Profile</span>
       </button>
+
     </nav>
 
   </div>
 
   <!-- GLOBAL NOTIFICATION / TOAST -->
-  <div id="uiToast" class="toast" role="status" aria-live="polite"></div>
+  <div id="uiToast" class="toast"
+    role="status" aria-live="polite"></div>
 
-  <!-- SUPABASE CLIENT: LOAD BEFORE core.js -->
+  <!-- SUPABASE CLIENT MUST LOAD BEFORE core.js -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- APPLICATION LOGIC -->
@@ -569,3 +804,4 @@
 
 </body>
 </html>
+
