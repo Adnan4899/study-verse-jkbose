@@ -1375,3 +1375,164 @@ select {
     transition-duration: 0.01ms !important;
   }
 }
+/* ============================================================
+   STUDY VERSE — PERSONAL WORKSPACE DESIGN
+   ============================================================ */
+
+#svPersonalWorkspace {
+  width: 100%;
+  margin-top: 35px;
+}
+
+#svPersonalWorkspace .sv-panel,
+#svPracticeArea .sv-panel {
+  padding: clamp(17px, 3vw, 26px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    145deg,
+    rgba(24, 37, 62, 0.94),
+    rgba(15, 23, 40, 0.97)
+  );
+  box-shadow: var(--shadow);
+}
+
+#svPersonalWorkspace .sv-panel h2,
+#svPracticeArea .sv-panel h2 {
+  margin-bottom: 12px;
+}
+
+#svPersonalWorkspace .sv-panel h3 {
+  margin-bottom: 15px;
+}
+
+#svPersonalWorkspace .sv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+#svPersonalWorkspace .sv-form {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+#svPersonalWorkspace input,
+#svPersonalWorkspace textarea,
+#svPersonalWorkspace select {
+  min-height: 46px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: #0d1527;
+  color: var(--text);
+}
+
+#svPersonalWorkspace textarea {
+  min-height: 100px;
+}
+
+#svPersonalWorkspace .sv-item,
+#svPracticeArea .sv-item {
+  margin-top: 13px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(28, 43, 71, 0.55);
+}
+
+#svPersonalWorkspace .sv-item p,
+#svPracticeArea .sv-item p {
+  margin-top: 9px;
+  overflow-wrap: anywhere;
+}
+
+#svPersonalWorkspace .sv-primary,
+#svPracticeArea .sv-primary {
+  background: linear-gradient(120deg, #9b8cff, #7162dc);
+  color: #fff;
+  font-weight: 700;
+}
+
+#svPersonalWorkspace .sv-delete {
+  background: rgba(255, 119, 126, 0.12);
+  color: var(--danger);
+}
+
+#svPersonalWorkspace button,
+#svPracticeArea button {
+  min-height: 42px;
+  transition: transform var(--transition), filter var(--transition);
+}
+
+#svPersonalWorkspace button:hover,
+#svPracticeArea button:hover {
+  filter: brightness(1.12);
+}
+
+#svPersonalWorkspace .sv-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0;
+  color: var(--text);
+  cursor: pointer;
+}
+
+#svPersonalWorkspace .sv-option input,
+#svPracticeArea .sv-option input,
+#svPersonalWorkspace input[type="checkbox"] {
+  width: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  margin-top: 3px;
+  accent-color: var(--primary);
+}
+
+#svPersonalWorkspace .sv-muted,
+#svPracticeArea .sv-muted {
+  color: var(--muted);
+}
+
+#svPracticeArea {
+  margin-top: 25px;
+}
+
+#svPracticeArea .sv-item strong {
+  display: block;
+  margin-bottom: 12px;
+}
+
+#svPracticeArea [aria-live="polite"] {
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* WORKSPACE RESPONSIVENESS */
+
+@media (max-width: 620px) {
+  #svPersonalWorkspace {
+    margin-top: 25px;
+  }
+
+  #svPersonalWorkspace .sv-grid {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  #svPersonalWorkspace .sv-panel,
+  #svPracticeArea .sv-panel {
+    padding: 17px;
+    border-radius: 17px;
+  }
+
+  #svPersonalWorkspace .sv-item,
+  #svPracticeArea .sv-item {
+    padding: 13px;
+  }
+
+  #svPersonalWorkspace button,
+  #svPracticeArea button {
+    max-width: 100%;
+  }
+   }
