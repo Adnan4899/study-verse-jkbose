@@ -1940,17 +1940,25 @@ if (document.readyState === "loading") {
 
    ============================================================ */
 
-
+     
 /* ============================================================
    STUDY VERSE — PERSONAL LEARNING WORKSPACE
    Notes • Goals • Flashcards • Practice Questions
-   Data storage: Current device (local storage)
+   Storage: Local device + Supabase cloud sync
 ============================================================ */
 
 (function () {
     "use strict";
 
     const STORAGE_KEY = "studyverse.personal-workspace.v1";
+    const MIGRATED_KEY = "studyverse.workspace.cloud-migrated.v1";
+
+    const TABLES = {
+        notes: "sv_learning_notes",
+        goals: "sv_learning_goals",
+        flashcards: "sv_flashcards",
+        questions: "sv_practice_questions"
+    };
 
     const emptyData = {
         notes: [],
@@ -1962,7 +1970,15 @@ if (document.readyState === "loading") {
     function loadData() {
         try {
             const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            if (!saved || typeof saved !== "object") return { ...emptyData };
+
+            if (!saved || typeof saved !== "object") {
+                return {
+                    notes: [],
+                    goals: [],
+                    flashcards: [],
+                    questions: []
+                };
+            }
 
             return {
                 notes: Array.isArray(saved.notes) ? saved.notes : [],
@@ -1971,19 +1987,26 @@ if (document.readyState === "loading") {
                 questions: Array.isArray(saved.questions) ? saved.questions : []
             };
         } catch (error) {
-            console.error("[Study Verse] Workspace storage error:", error);
-            return { ...emptyData };
+            console.error("[Study Verse] Workspace storage:", error);
+            return {
+                notes: [],
+                goals: [],
+                flashcards: [],
+                questions: []
+            };
         }
     }
 
     let data = loadData();
+    let cloudUserId = null;
+    let activationPromise = null;
 
     function saveData() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             return true;
         } catch (error) {
-            console.error("[Study Verse] Could not save workspace:", error);
+            console.error("[Study Verse] Workspace save:", error);
             alert("Unable to save. Your device storage may be full.");
             return false;
         }
@@ -1999,6 +2022,264 @@ if (document.readyState === "loading") {
                 '"': "&quot;",
                 "'": "&#039;"
             })[char]);
+    }
+
+    function newId() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+            return window.crypto.randomUUID();
+        }
+
+        return deterministicUUID(
+            Date.now() + ":" + Math.random() + ":" + Math.random()
+        );
+    }
+
+    function deterministicUUID(value) {
+        const text = String(value);
+        const hashes = [
+            2166136261,
+            2246822519,
+            3266489917,
+            668265263
+        ];
+
+        for (let i = 0; i < text.length; i++) {
+            for (let j = 0; j < hashes.length; j++) {
+                hashes[j] = Math.imul(
+                    hashes[j] ^ (text.charCodeAt(i) + j),
+                    16777619 + (j * 2)
+                ) >>> 0;
+            }
+        }
+
+        let hex = hashes.map(value =>
+            value.toString(16).padStart(8, "0")
+        ).join("");
+
+        hex = hex.slice(0, 12) + "5" + hex.slice(13);
+        hex = hex.slice(0, 16) +
+            ((parseInt(hex[16], 16) & 3) | 8).toString(16) +
+            hex.slice(17);
+
+        return [
+            hex.slice(0, 8),
+            hex.slice(8, 12),
+            hex.slice(12, 16),
+            hex.slice(16, 20),
+            hex.slice(20, 32)
+        ].join("-");
+    }
+
+    function setStorageStatus(message) {
+        const status = document.getElementById("svWorkspaceStorageStatus");
+        if (status) status.textContent = message;
+    }
+
+    function getCloudRows(userId) {
+        return {
+            notes: data.notes.map(item => ({
+                id: item.id,
+                user_id: userId,
+                title: item.title,
+                content: item.body || ""
+            })),
+
+            goals: data.goals.map(item => ({
+                id: item.id,
+                user_id: userId,
+                title: item.title,
+                target_date: item.date || null,
+                status: item.completed ? "COMPLETED" : "ACTIVE"
+            })),
+
+            flashcards: data.flashcards.map(item => ({
+                id: item.id,
+                user_id: userId,
+                deck_name: "My Flashcards",
+                question: item.front,
+                answer: item.back
+            })),
+
+            questions: data.questions.map(item => ({
+                id: item.id,
+                user_id: userId,
+                question: item.question,
+                options: item.options,
+                correct_answer: String(item.correct)
+            }))
+        };
+    }
+
+    async function migrateLegacyData(userId, db) {
+        if (localStorage.getItem(MIGRATED_KEY) === "true") {
+            return;
+        }
+
+        const hasData = Object.values(data).some(items => items.length > 0);
+
+        if (!hasData) {
+            localStorage.setItem(MIGRATED_KEY, "true");
+            return;
+        }
+
+        const idTypes = ["notes", "goals", "flashcards", "questions"];
+
+        idTypes.forEach(type => {
+            data[type].forEach(item => {
+                item.id = deterministicUUID(
+                    userId + ":" + type + ":" + item.id
+                );
+            });
+        });
+
+        if (!saveData()) {
+            throw new Error("Could not preserve your existing workspace data.");
+        }
+
+        const rows = getCloudRows(userId);
+
+        for (const type of idTypes) {
+            if (rows[type].length === 0) continue;
+
+            const { error } = await db
+                .from(TABLES[type])
+                .upsert(rows[type], { onConflict: "id" });
+
+            if (error) throw error;
+        }
+
+        localStorage.setItem(MIGRATED_KEY, "true");
+    }
+
+    async function loadCloudData(userId, db) {
+        const types = Object.keys(TABLES);
+
+        const results = await Promise.all(
+            types.map(type =>
+                db.from(TABLES[type])
+                    .select("*")
+                    .eq("user_id", userId)
+                    .order("created_at", { ascending: false })
+            )
+        );
+
+        results.forEach((result, index) => {
+            if (result.error) throw result.error;
+        });
+
+        const rows = {};
+
+        types.forEach((type, index) => {
+            rows[type] = results[index].data || [];
+        });
+
+        data.notes = rows.notes.map(item => ({
+            id: item.id,
+            title: item.title,
+            body: item.content || "",
+            createdAt: item.created_at
+        }));
+
+        data.goals = rows.goals.map(item => ({
+            id: item.id,
+            title: item.title,
+            date: item.target_date || "",
+            completed: item.status === "COMPLETED"
+        }));
+
+        data.flashcards = rows.flashcards.map(item => ({
+            id: item.id,
+            front: item.question,
+            back: item.answer,
+            revealed: false
+        }));
+
+        data.questions = rows.questions.map(item => ({
+            id: item.id,
+            question: item.question,
+            options: Array.isArray(item.options) ? item.options : [],
+            correct: Number(item.correct_answer)
+        }));
+
+        saveData();
+        renderAll();
+    }
+
+    async function activateCloudWorkspace() {
+        if (
+            !currentUser ||
+            typeof isApprovedUser !== "function" ||
+            !isApprovedUser()
+        ) {
+            return;
+        }
+
+        const userId = currentUser.id;
+
+        if (cloudUserId === userId) return;
+        if (activationPromise) return activationPromise;
+
+        activationPromise = (async () => {
+            try {
+                setStorageStatus("Connecting your secure workspace...");
+
+                const db = getSupabase();
+
+                await migrateLegacyData(userId, db);
+                await loadCloudData(userId, db);
+
+                cloudUserId = userId;
+
+                setStorageStatus("Your workspace is synced with your account.");
+                console.info("[Study Verse] Workspace cloud sync ready.");
+
+            } catch (error) {
+                cloudUserId = null;
+                setStorageStatus(
+                    "Cloud sync unavailable. Your device copy is preserved."
+                );
+
+                console.error("[Study Verse] Cloud workspace:", error);
+
+                if (typeof uiAction === "function") {
+                    uiAction(
+                        "Workspace cloud sync failed. Your local data is preserved.",
+                        "error"
+                    );
+                }
+            } finally {
+                activationPromise = null;
+            }
+        })();
+
+        return activationPromise;
+    }
+
+    async function syncRecord(type, item) {
+        if (!cloudUserId) return;
+
+        const rows = getCloudRows(cloudUserId);
+        const record = rows[type].find(row => row.id === item.id);
+
+        if (!record) return;
+
+        const { error } = await getSupabase()
+            .from(TABLES[type])
+            .upsert(record, { onConflict: "id" });
+
+        if (error) throw error;
+    }
+
+    async function deleteCloudRecord(type, id) {
+        if (!cloudUserId) return;
+
+        const { error } = await getSupabase()
+            .from(TABLES[type])
+            .delete()
+            .eq("id", id)
+            .eq("user_id", cloudUserId);
+
+        if (error) throw error;
     }
 
     function createWorkspace() {
@@ -2097,13 +2378,12 @@ if (document.readyState === "loading") {
                     Organise your learning, track personal goals and practise
                     at your own pace.
                 </p>
-                <p class="sv-muted">
-                    Your workspace data is currently saved on this device.
+                <p class="sv-muted" id="svWorkspaceStorageStatus">
+                    Your workspace is saved on this device.
                 </p>
             </div>
 
             <div class="sv-grid">
-
                 <section class="sv-panel">
                     <h3>My Study Notes</h3>
                     <form class="sv-form" data-form="note">
@@ -2144,14 +2424,10 @@ if (document.readyState === "loading") {
                     <form class="sv-form" data-form="question">
                         <input name="question" maxlength="500"
                             placeholder="Enter your question" required>
-                        <input name="a" maxlength="200"
-                            placeholder="Option A" required>
-                        <input name="b" maxlength="200"
-                            placeholder="Option B" required>
-                        <input name="c" maxlength="200"
-                            placeholder="Option C" required>
-                        <input name="d" maxlength="200"
-                            placeholder="Option D" required>
+                        <input name="a" maxlength="200" placeholder="Option A" required>
+                        <input name="b" maxlength="200" placeholder="Option B" required>
+                        <input name="c" maxlength="200" placeholder="Option C" required>
+                        <input name="d" maxlength="200" placeholder="Option D" required>
                         <select name="correct" required>
                             <option value="">Select correct answer</option>
                             <option value="0">Option A</option>
@@ -2163,7 +2439,6 @@ if (document.readyState === "loading") {
                     </form>
                     <div id="svQuestionsList"></div>
                 </section>
-
             </div>
         `;
 
@@ -2189,106 +2464,143 @@ if (document.readyState === "loading") {
         renderAll();
     }
 
-    function handleSubmit(event) {
+    async function handleSubmit(event) {
         const form = event.target.closest("form[data-form]");
         if (!form) return;
 
         event.preventDefault();
 
         const values = Object.fromEntries(new FormData(form).entries());
-        const id = Date.now().toString() + Math.random().toString(16).slice(2);
+        const id = newId();
+        let type;
+        let item;
 
         if (form.dataset.form === "note") {
-            data.notes.unshift({
+            type = "notes";
+            item = {
                 id,
                 title: values.title.trim(),
                 body: values.body.trim(),
                 createdAt: new Date().toISOString()
-            });
-        }
-
-        if (form.dataset.form === "goal") {
-            data.goals.unshift({
+            };
+        } else if (form.dataset.form === "goal") {
+            type = "goals";
+            item = {
                 id,
                 title: values.title.trim(),
                 date: values.date || "",
                 completed: false
-            });
-        }
-
-        if (form.dataset.form === "flashcard") {
-            data.flashcards.unshift({
+            };
+        } else if (form.dataset.form === "flashcard") {
+            type = "flashcards";
+            item = {
                 id,
                 front: values.front.trim(),
                 back: values.back.trim(),
                 revealed: false
-            });
-        }
-
-        if (form.dataset.form === "question") {
-            data.questions.unshift({
+            };
+        } else if (form.dataset.form === "question") {
+            type = "questions";
+            item = {
                 id,
                 question: values.question.trim(),
-                options: [values.a, values.b, values.c, values.d].map(v => v.trim()),
+                options: [values.a, values.b, values.c, values.d]
+                    .map(value => value.trim()),
                 correct: Number(values.correct)
-            });
+            };
+        } else {
+            return;
         }
 
-        if (saveData()) {
-            form.reset();
-            renderAll();
+        data[type].unshift(item);
 
-            if (typeof uiAction === "function") {
-                uiAction("Saved successfully.", "success");
+        if (!saveData()) {
+            data[type] = data[type].filter(record => record.id !== id);
+            return;
+        }
+
+        form.reset();
+        renderAll();
+
+        if (cloudUserId) {
+            try {
+                await syncRecord(type, item);
+                uiAction("Saved and synced successfully.", "success");
+            } catch (error) {
+                console.error("[Study Verse] Record sync:", error);
+                uiAction("Saved on this device. Cloud sync failed.", "error");
             }
+        } else {
+            uiAction("Saved on this device.", "success");
         }
     }
 
-    function handleClick(event) {
+    async function handleClick(event) {
         const button = event.target.closest("[data-action]");
         if (!button) return;
 
         const action = button.dataset.action;
         const id = button.dataset.id;
 
-        if (action === "delete-note") {
-            data.notes = data.notes.filter(item => item.id !== id);
-        }
+        const actions = {
+            "delete-note": "notes",
+            "delete-goal": "goals",
+            "delete-flashcard": "flashcards",
+            "delete-question": "questions"
+        };
 
-        if (action === "delete-goal") {
-            data.goals = data.goals.filter(item => item.id !== id);
-        }
+        if (actions[action]) {
+            const type = actions[action];
 
-        if (action === "delete-flashcard") {
-            data.flashcards = data.flashcards.filter(item => item.id !== id);
-        }
+            data[type] = data[type].filter(item => item.id !== id);
 
-        if (action === "delete-question") {
-            data.questions = data.questions.filter(item => item.id !== id);
+            if (!saveData()) return;
+
+            renderAll();
+
+            try {
+                await deleteCloudRecord(type, id);
+                uiAction("Deleted successfully.", "success");
+            } catch (error) {
+                console.error("[Study Verse] Delete sync:", error);
+                uiAction("Deleted locally, but cloud deletion failed.", "error");
+            }
+
+            return;
         }
 
         if (action === "reveal-card") {
             const card = data.flashcards.find(item => item.id === id);
-            if (card) card.revealed = !card.revealed;
-        }
 
-        if (action === "complete-goal") {
-            const goal = data.goals.find(item => item.id === id);
-            if (goal) goal.completed = !goal.completed;
+            if (card) {
+                card.revealed = !card.revealed;
+                saveData();
+                renderAll();
+            }
         }
-
-        if (saveData()) renderAll();
     }
 
-    function handleChange(event) {
-        const select = event.target.closest("[data-goal]");
-        if (!select) return;
+    async function handleChange(event) {
+        const checkbox = event.target.closest("[data-goal]");
+        if (!checkbox) return;
 
-        const goal = data.goals.find(item => item.id === select.dataset.goal);
-        if (goal) {
-            goal.completed = select.checked;
-            saveData();
-            renderAll();
+        const goal = data.goals.find(
+            item => item.id === checkbox.dataset.goal
+        );
+
+        if (!goal) return;
+
+        goal.completed = checkbox.checked;
+
+        if (!saveData()) return;
+
+        renderAll();
+
+        try {
+            await syncRecord("goals", goal);
+        } catch (error) {
+            console.error("[Study Verse] Goal sync:", error);
+            uiAction("Goal saved locally. Cloud sync failed.", "error");
         }
     }
 
@@ -2298,11 +2610,12 @@ if (document.readyState === "loading") {
 
         const id = button.dataset.id;
         const question = data.questions.find(item => item.id === id);
+
         if (!question) return;
 
-        const selected = document.querySelector(
-            `[data-answer="${CSS.escape(id)}"]:checked`
-        );
+        const selected = Array.from(
+            document.querySelectorAll("[data-answer]:checked")
+        ).find(input => input.dataset.answer === id);
 
         const result = document.getElementById("svResult-" + id);
 
@@ -2321,12 +2634,13 @@ if (document.readyState === "loading") {
     }
 
     function handlePracticeChange(event) {
-        if (event.target.matches("[data-answer]")) {
-            const result = document.getElementById(
-                "svResult-" + event.target.dataset.answer
-            );
-            if (result) result.textContent = "";
-        }
+        if (!event.target.matches("[data-answer]")) return;
+
+        const result = document.getElementById(
+            "svResult-" + event.target.dataset.answer
+        );
+
+        if (result) result.textContent = "";
     }
 
     function renderAll() {
@@ -2431,6 +2745,15 @@ if (document.readyState === "loading") {
 
     function init() {
         createWorkspace();
+
+        window.addEventListener(
+            "studyverse:authenticated",
+            activateCloudWorkspace
+        );
+
+        if (currentUser && isApprovedUser()) {
+            activateCloudWorkspace();
+        }
     }
 
     if (document.readyState === "loading") {
@@ -2441,7 +2764,10 @@ if (document.readyState === "loading") {
 
     window.StudyVerseWorkspace = Object.freeze({
         refresh: renderAll,
+        sync: activateCloudWorkspace,
         getData: () => JSON.parse(JSON.stringify(data))
     });
 
 })();
+
+
