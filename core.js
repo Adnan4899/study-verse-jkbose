@@ -1935,5 +1935,513 @@ if (document.readyState === "loading") {
 }
 
 /* ============================================================
+
    END OF STUDY VERSE CORE ENGINE
+
    ============================================================ */
+
+
+/* ============================================================
+   STUDY VERSE — PERSONAL LEARNING WORKSPACE
+   Notes • Goals • Flashcards • Practice Questions
+   Data storage: Current device (local storage)
+============================================================ */
+
+(function () {
+    "use strict";
+
+    const STORAGE_KEY = "studyverse.personal-workspace.v1";
+
+    const emptyData = {
+        notes: [],
+        goals: [],
+        flashcards: [],
+        questions: []
+    };
+
+    function loadData() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (!saved || typeof saved !== "object") return { ...emptyData };
+
+            return {
+                notes: Array.isArray(saved.notes) ? saved.notes : [],
+                goals: Array.isArray(saved.goals) ? saved.goals : [],
+                flashcards: Array.isArray(saved.flashcards) ? saved.flashcards : [],
+                questions: Array.isArray(saved.questions) ? saved.questions : []
+            };
+        } catch (error) {
+            console.error("[Study Verse] Workspace storage error:", error);
+            return { ...emptyData };
+        }
+    }
+
+    let data = loadData();
+
+    function saveData() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            return true;
+        } catch (error) {
+            console.error("[Study Verse] Could not save workspace:", error);
+            alert("Unable to save. Your device storage may be full.");
+            return false;
+        }
+    }
+
+    function safe(value) {
+        return typeof escapeHTML === "function"
+            ? escapeHTML(value)
+            : String(value ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;"
+            })[char]);
+    }
+
+    function createWorkspace() {
+        const learnView = document.getElementById("learnView");
+        const testsView = document.getElementById("testsView");
+
+        if (!learnView || !testsView) {
+            console.warn("[Study Verse] Learning sections were not found.");
+            return;
+        }
+
+        if (document.getElementById("svPersonalWorkspace")) return;
+
+        const workspace = document.createElement("div");
+        workspace.id = "svPersonalWorkspace";
+
+        workspace.innerHTML = `
+            <style>
+                #svPersonalWorkspace {
+                    margin: 24px 0;
+                    color: inherit;
+                }
+                #svPersonalWorkspace .sv-panel {
+                    padding: 18px;
+                    margin: 16px 0;
+                    border: 1px solid var(--border-color, rgba(150,150,180,.2));
+                    border-radius: 16px;
+                    background: var(--card-bg, rgba(120,120,150,.07));
+                }
+                #svPersonalWorkspace h2,
+                #svPersonalWorkspace h3 {
+                    margin-top: 0;
+                }
+                #svPersonalWorkspace .sv-form {
+                    display: grid;
+                    gap: 10px;
+                    margin: 12px 0;
+                }
+                #svPersonalWorkspace input,
+                #svPersonalWorkspace textarea,
+                #svPersonalWorkspace select {
+                    width: 100%;
+                    box-sizing: border-box;
+                    padding: 12px;
+                    border: 1px solid var(--border-color, #777);
+                    border-radius: 10px;
+                    background: var(--input-bg, transparent);
+                    color: inherit;
+                    font: inherit;
+                }
+                #svPersonalWorkspace textarea {
+                    min-height: 75px;
+                    resize: vertical;
+                }
+                #svPersonalWorkspace button {
+                    padding: 10px 14px;
+                    border: 0;
+                    border-radius: 9px;
+                    cursor: pointer;
+                    font: inherit;
+                }
+                #svPersonalWorkspace .sv-primary {
+                    background: var(--accent-color, #7458e8);
+                    color: white;
+                }
+                #svPersonalWorkspace .sv-delete {
+                    background: rgba(220,70,70,.12);
+                    color: inherit;
+                    margin-top: 8px;
+                }
+                #svPersonalWorkspace .sv-item {
+                    padding: 12px;
+                    margin: 10px 0;
+                    border-radius: 10px;
+                    background: rgba(120,120,150,.09);
+                    overflow-wrap: anywhere;
+                }
+                #svPersonalWorkspace .sv-muted {
+                    opacity: .7;
+                    font-size: .9em;
+                }
+                #svPersonalWorkspace .sv-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+                    gap: 12px;
+                }
+                #svPersonalWorkspace .sv-option {
+                    display: block;
+                    margin: 8px 0;
+                }
+            </style>
+
+            <div class="sv-panel">
+                <h2>My Learning Workspace</h2>
+                <p class="sv-muted">
+                    Organise your learning, track personal goals and practise
+                    at your own pace.
+                </p>
+                <p class="sv-muted">
+                    Your workspace data is currently saved on this device.
+                </p>
+            </div>
+
+            <div class="sv-grid">
+
+                <section class="sv-panel">
+                    <h3>My Study Notes</h3>
+                    <form class="sv-form" data-form="note">
+                        <input name="title" maxlength="100"
+                            placeholder="Note title" required>
+                        <textarea name="body" maxlength="5000"
+                            placeholder="Write your study notes..." required></textarea>
+                        <button class="sv-primary" type="submit">Save Note</button>
+                    </form>
+                    <div id="svNotesList"></div>
+                </section>
+
+                <section class="sv-panel">
+                    <h3>My Learning Goals</h3>
+                    <form class="sv-form" data-form="goal">
+                        <input name="title" maxlength="150"
+                            placeholder="What do you want to achieve?" required>
+                        <input name="date" type="date">
+                        <button class="sv-primary" type="submit">Add Goal</button>
+                    </form>
+                    <div id="svGoalsList"></div>
+                </section>
+
+                <section class="sv-panel">
+                    <h3>My Flashcards</h3>
+                    <form class="sv-form" data-form="flashcard">
+                        <input name="front" maxlength="500"
+                            placeholder="Question or term" required>
+                        <textarea name="back" maxlength="2000"
+                            placeholder="Answer or explanation" required></textarea>
+                        <button class="sv-primary" type="submit">Create Flashcard</button>
+                    </form>
+                    <div id="svFlashcardsList"></div>
+                </section>
+
+                <section class="sv-panel">
+                    <h3>Build Your Own Practice Questions</h3>
+                    <form class="sv-form" data-form="question">
+                        <input name="question" maxlength="500"
+                            placeholder="Enter your question" required>
+                        <input name="a" maxlength="200"
+                            placeholder="Option A" required>
+                        <input name="b" maxlength="200"
+                            placeholder="Option B" required>
+                        <input name="c" maxlength="200"
+                            placeholder="Option C" required>
+                        <input name="d" maxlength="200"
+                            placeholder="Option D" required>
+                        <select name="correct" required>
+                            <option value="">Select correct answer</option>
+                            <option value="0">Option A</option>
+                            <option value="1">Option B</option>
+                            <option value="2">Option C</option>
+                            <option value="3">Option D</option>
+                        </select>
+                        <button class="sv-primary" type="submit">Save Question</button>
+                    </form>
+                    <div id="svQuestionsList"></div>
+                </section>
+
+            </div>
+        `;
+
+        learnView.appendChild(workspace);
+
+        const practiceLink = document.createElement("p");
+        practiceLink.className = "sv-muted";
+        practiceLink.textContent =
+            "Your saved practice questions are also available below in Practice & Tests.";
+        testsView.appendChild(practiceLink);
+
+        const practiceArea = document.createElement("div");
+        practiceArea.id = "svPracticeArea";
+        testsView.appendChild(practiceArea);
+
+        workspace.addEventListener("submit", handleSubmit);
+        workspace.addEventListener("click", handleClick);
+        workspace.addEventListener("change", handleChange);
+
+        practiceArea.addEventListener("click", handlePracticeClick);
+        practiceArea.addEventListener("change", handlePracticeChange);
+
+        renderAll();
+    }
+
+    function handleSubmit(event) {
+        const form = event.target.closest("form[data-form]");
+        if (!form) return;
+
+        event.preventDefault();
+
+        const values = Object.fromEntries(new FormData(form).entries());
+        const id = Date.now().toString() + Math.random().toString(16).slice(2);
+
+        if (form.dataset.form === "note") {
+            data.notes.unshift({
+                id,
+                title: values.title.trim(),
+                body: values.body.trim(),
+                createdAt: new Date().toISOString()
+            });
+        }
+
+        if (form.dataset.form === "goal") {
+            data.goals.unshift({
+                id,
+                title: values.title.trim(),
+                date: values.date || "",
+                completed: false
+            });
+        }
+
+        if (form.dataset.form === "flashcard") {
+            data.flashcards.unshift({
+                id,
+                front: values.front.trim(),
+                back: values.back.trim(),
+                revealed: false
+            });
+        }
+
+        if (form.dataset.form === "question") {
+            data.questions.unshift({
+                id,
+                question: values.question.trim(),
+                options: [values.a, values.b, values.c, values.d].map(v => v.trim()),
+                correct: Number(values.correct)
+            });
+        }
+
+        if (saveData()) {
+            form.reset();
+            renderAll();
+
+            if (typeof uiAction === "function") {
+                uiAction("Saved successfully.", "success");
+            }
+        }
+    }
+
+    function handleClick(event) {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === "delete-note") {
+            data.notes = data.notes.filter(item => item.id !== id);
+        }
+
+        if (action === "delete-goal") {
+            data.goals = data.goals.filter(item => item.id !== id);
+        }
+
+        if (action === "delete-flashcard") {
+            data.flashcards = data.flashcards.filter(item => item.id !== id);
+        }
+
+        if (action === "delete-question") {
+            data.questions = data.questions.filter(item => item.id !== id);
+        }
+
+        if (action === "reveal-card") {
+            const card = data.flashcards.find(item => item.id === id);
+            if (card) card.revealed = !card.revealed;
+        }
+
+        if (action === "complete-goal") {
+            const goal = data.goals.find(item => item.id === id);
+            if (goal) goal.completed = !goal.completed;
+        }
+
+        if (saveData()) renderAll();
+    }
+
+    function handleChange(event) {
+        const select = event.target.closest("[data-goal]");
+        if (!select) return;
+
+        const goal = data.goals.find(item => item.id === select.dataset.goal);
+        if (goal) {
+            goal.completed = select.checked;
+            saveData();
+            renderAll();
+        }
+    }
+
+    function handlePracticeClick(event) {
+        const button = event.target.closest("[data-practice]");
+        if (!button) return;
+
+        const id = button.dataset.id;
+        const question = data.questions.find(item => item.id === id);
+        if (!question) return;
+
+        const selected = document.querySelector(
+            `[data-answer="${CSS.escape(id)}"]:checked`
+        );
+
+        const result = document.getElementById("svResult-" + id);
+
+        if (!selected) {
+            if (result) result.textContent = "Please select an answer first.";
+            return;
+        }
+
+        const correct = Number(selected.value) === question.correct;
+
+        if (result) {
+            result.textContent = correct
+                ? "Correct! Well done."
+                : "Not quite. Review the question and try again.";
+        }
+    }
+
+    function handlePracticeChange(event) {
+        if (event.target.matches("[data-answer]")) {
+            const result = document.getElementById(
+                "svResult-" + event.target.dataset.answer
+            );
+            if (result) result.textContent = "";
+        }
+    }
+
+    function renderAll() {
+        const notes = document.getElementById("svNotesList");
+        const goals = document.getElementById("svGoalsList");
+        const cards = document.getElementById("svFlashcardsList");
+        const questions = document.getElementById("svQuestionsList");
+        const practice = document.getElementById("svPracticeArea");
+
+        if (notes) {
+            notes.innerHTML = data.notes.length
+                ? data.notes.map(item => `
+                    <article class="sv-item">
+                        <strong>${safe(item.title)}</strong>
+                        <p>${safe(item.body).replace(/\n/g, "<br>")}</p>
+                        <button class="sv-delete" data-action="delete-note"
+                            data-id="${safe(item.id)}">Delete note</button>
+                    </article>
+                `).join("")
+                : '<p class="sv-muted">No notes saved yet.</p>';
+        }
+
+        if (goals) {
+            goals.innerHTML = data.goals.length
+                ? data.goals.map(item => `
+                    <article class="sv-item">
+                        <label>
+                            <input type="checkbox" data-goal="${safe(item.id)}"
+                                ${item.completed ? "checked" : ""}>
+                            <strong>${safe(item.title)}</strong>
+                        </label>
+                        <p class="sv-muted">
+                            ${item.date ? "Target: " + safe(item.date) : "No target date"}
+                        </p>
+                        <button class="sv-delete" data-action="delete-goal"
+                            data-id="${safe(item.id)}">Delete goal</button>
+                    </article>
+                `).join("")
+                : '<p class="sv-muted">No goals added yet.</p>';
+        }
+
+        if (cards) {
+            cards.innerHTML = data.flashcards.length
+                ? data.flashcards.map(item => `
+                    <article class="sv-item">
+                        <strong>${safe(item.front)}</strong>
+                        ${item.revealed ? `<p>${safe(item.back)}</p>` : ""}
+                        <button class="sv-primary" data-action="reveal-card"
+                            data-id="${safe(item.id)}">
+                            ${item.revealed ? "Hide answer" : "Reveal answer"}
+                        </button>
+                        <button class="sv-delete" data-action="delete-flashcard"
+                            data-id="${safe(item.id)}">Delete</button>
+                    </article>
+                `).join("")
+                : '<p class="sv-muted">No flashcards created yet.</p>';
+        }
+
+        if (questions) {
+            questions.innerHTML = data.questions.length
+                ? data.questions.map(item => `
+                    <article class="sv-item">
+                        <strong>${safe(item.question)}</strong>
+                        <p class="sv-muted">Saved for your practice session.</p>
+                        <button class="sv-delete" data-action="delete-question"
+                            data-id="${safe(item.id)}">Delete question</button>
+                    </article>
+                `).join("")
+                : '<p class="sv-muted">No practice questions created yet.</p>';
+        }
+
+        if (practice) {
+            practice.innerHTML = data.questions.length
+                ? `<div class="sv-panel">
+                    <h2>My Practice Questions</h2>
+                    <p class="sv-muted">Select an answer and check your result.</p>
+                    ${data.questions.map((item, index) => `
+                        <article class="sv-item">
+                            <strong>${index + 1}. ${safe(item.question)}</strong>
+                            ${item.options.map((option, optionIndex) => `
+                                <label class="sv-option">
+                                    <input type="radio" name="svq-${safe(item.id)}"
+                                        data-answer="${safe(item.id)}"
+                                        value="${optionIndex}">
+                                    ${safe(option)}
+                                </label>
+                            `).join("")}
+                            <button class="sv-primary" data-practice="check"
+                                data-id="${safe(item.id)}">Check answer</button>
+                            <p id="svResult-${safe(item.id)}" aria-live="polite"></p>
+                        </article>
+                    `).join("")}
+                </div>`
+                : `<div class="sv-panel">
+                    <h2>My Practice Questions</h2>
+                    <p class="sv-muted">
+                        Create your own questions in Learning Space to practise here.
+                    </p>
+                </div>`;
+        }
+    }
+
+    function init() {
+        createWorkspace();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+        init();
+    }
+
+    window.StudyVerseWorkspace = Object.freeze({
+        refresh: renderAll,
+        getData: () => JSON.parse(JSON.stringify(data))
+    });
+
+})();
