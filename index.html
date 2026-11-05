@@ -1,342 +1,571 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Study Verse JKBOSE</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="premium.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d1b">
+  <meta name="description" content="Study Verse — Learn, Explore and Evolve with a global learning ecosystem.">
+  <title>Study Verse — Learn • Explore • Evolve</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="premium.css">
 </head>
+
 <body>
-    <div class="ambient-mesh"></div>
 
-    <!-- SPLASH SCREEN -->
-    <div id="splashScreen" class="fullscreen-view active-flex">
-        <div class="splash-content">
-            <div class="splash-logo"><i class="fa-brands fa-space-awesome"></i></div>
-            <h1 class="brand-title" style="font-size: 2.5rem;">STUDY VERSE</h1>
-            <p style="color: var(--brand-cyan); letter-spacing: 2px; font-size: 0.8rem; font-weight: 700; margin-top: 10px;">JKBOSE</p>
-            <div class="loading-bar"><div class="loading-progress"></div></div>
-        </div>
+  <!-- SPLASH SCREEN -->
+  <section id="splashScreen" class="splash-screen">
+    <div class="splash-content">
+      <div class="brand-symbol">S</div>
+      <h1>STUDY VERSE</h1>
+      <p>Learn. Explore. Evolve.</p>
+      <div class="loading-line"></div>
     </div>
+  </section>
 
-    <!-- PREMIUM INTRODUCTION -->
-    <div id="onboardingScreen" class="intro-view hidden">
-        <div class="intro-scroll-wrapper">
-            <div class="intro-header-sec">
-                <div class="intro-logo"><i class="fa-brands fa-space-awesome"></i></div>
-                <h1 class="intro-brand">STUDY VERSE<br>JKBOSE</h1>
-                <p class="intro-tagline">Learn • Prepare • Achieve</p>
-                <p class="intro-desc">A premium, student-focused learning platform designed specifically for JKBOSE Classes 9th–12th. Our purpose is to make reliable educational resources, learning support, and academic information easily accessible.</p>
-            </div>
+  <!-- INTRODUCTION / ONBOARDING -->
+  <section id="onboardingScreen" class="onboarding-screen hidden">
+    <div class="onboarding-content">
+      <div class="brand-symbol">S</div>
+      <span class="eyebrow">YOUR LEARNING JOURNEY STARTS HERE</span>
+      <h1>One world.<br><span>Unlimited learning.</span></h1>
+      <p>
+        Discover knowledge, build skills, explore new ideas and make
+        learning part of your everyday life.
+      </p>
 
-            <div class="intro-section">
-                <h3 class="intro-sec-title">What You'll Get</h3>
-                <div class="benefits-grid">
-                    <div class="benefit-card"><i class="fa-solid fa-book-open"></i><span>Smart Notes</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-file-lines"></i><span>PYQs</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-layer-group"></i><span>Materials</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-list-check"></i><span>Syllabus</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-file-signature"></i><span>Model Papers</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-stopwatch"></i><span>Practice Tests</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-robot"></i><span>AI Support</span></div>
-                    <div class="benefit-card"><i class="fa-solid fa-bullhorn"></i><span>Exam Updates</span></div>
-                </div>
-            </div>
-
-            <div class="founder-card">
-                <div class="founder-badge">MEET THE FOUNDER</div>
-                <h3 class="founder-name">Adnan Manzoor</h3>
-                <p class="founder-vision">"My vision is to make high-quality, comprehensive educational resources accessible to every student, empowering you to excel in your academic journey and prepare for board examinations with absolute confidence."</p>
-            </div>
-
-            <div class="intro-footer">
-                <p class="closing-line">Your Learning Journey Starts Here.</p>
-                <button class="btn-premium btn-large btn-explore" onclick="completeOnboarding()">
-                    Explore Platform <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
+      <div class="intro-features">
+        <div class="intro-feature">
+          <span>✦</span>
+          <div>
+            <strong>Learn without limits</strong>
+            <small>Explore subjects and learning resources.</small>
+          </div>
         </div>
+        <div class="intro-feature">
+          <span>◎</span>
+          <div>
+            <strong>Learn your way</strong>
+            <small>Build a learning experience around your goals.</small>
+          </div>
+        </div>
+        <div class="intro-feature">
+          <span>↗</span>
+          <div>
+            <strong>Grow every day</strong>
+            <small>Develop knowledge and practical skills.</small>
+          </div>
+        </div>
+      </div>
+
+      <button class="primary-btn" onclick="completeOnboarding()">
+        Explore Study Verse <span>→</span>
+      </button>
+
+      <p class="founder-credit">Founded by Adnan Manzoor</p>
     </div>
+  </section>
 
-    <!-- MAIN APP INTERFACE -->
-    <main id="app-root" class="hidden">
-        
-        <!-- HOMEPAGE -->
-        <section id="homeView" class="app-view active">
-            <header class="home-header">
-                <div class="user-greeting">
-                    <p id="dynamicGreeting">Good Evening,</p>
-                    <h2 id="studentNameDisplay">Student</h2>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn" onclick="navigateTo('libraryView', document.querySelectorAll('.tab-item')[1])"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    <button class="icon-btn notification-btn" onclick="uiAction('Notifications Center Opened')">
-                        <i class="fa-regular fa-bell"></i>
-                        <span class="notification-dot"></span>
-                    </button>
-                </div>
-            </header>
+  <!-- MAIN APPLICATION -->
+  <div id="app-root" class="app-root hidden">
 
-            <div class="scroll-container">
-                <div class="hero-banner">
-                    <div class="hero-content">
-                        <h3>Prepare for JKBOSE 2026</h3>
-                        <p>Verified notes and PYQs for your academic success.</p>
-                    </div>
-                </div>
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <a href="#" class="brand" onclick="navigateTo('homeView'); return false;">
+        <span class="brand-symbol small">S</span>
+        <span class="brand-name">STUDY VERSE</span>
+      </a>
 
-                <div class="quick-grid">
-                    <div class="quick-card cyan-glow" onclick="navigateTo('libraryView', document.querySelectorAll('.tab-item')[1])">
-                        <i class="fa-solid fa-book-open"></i><span>Notes</span>
-                    </div>
-                    <div class="quick-card blue-glow" onclick="navigateTo('libraryView', document.querySelectorAll('.tab-item')[1])">
-                        <i class="fa-solid fa-file-lines"></i><span>PYQs</span>
-                    </div>
-                    <div class="quick-card purple-glow" onclick="navigateTo('learnView', document.querySelectorAll('.tab-item')[2])">
-                        <i class="fa-solid fa-list-check"></i><span>Syllabus</span>
-                    </div>
-                    <div class="quick-card grey-glow" onclick="uiAction('Checking Latest Updates')">
-                        <i class="fa-solid fa-bullhorn"></i><span>Updates</span>
-                    </div>
-                </div>
+      <div class="topbar-actions">
+        <span id="connectionStatus" class="connection-status">Connecting...</span>
+        <button class="icon-btn" type="button" aria-label="Notifications" title="Notifications">
+          ♧
+        </button>
+        <button class="avatar-btn" type="button" onclick="navigateTo('profileView')" aria-label="Open profile">
+          A
+        </button>
+      </div>
+    </header>
 
-                <h3 class="section-title">Select Your Class</h3>
-                <div class="class-list">
-                    <div class="class-card" onclick="navigateTo('learnView', document.querySelectorAll('.tab-item')[2])">
-                        <div class="class-info"><h2>Class 9th</h2><p>Secondary School</p></div>
-                        <div class="class-action"><i class="fa-solid fa-chevron-right"></i></div>
-                    </div>
-                    <div class="class-card" onclick="navigateTo('learnView', document.querySelectorAll('.tab-item')[2])">
-                        <div class="class-info"><h2>Class 10th</h2><p>Secondary School Examination</p></div>
-                        <div class="class-action"><i class="fa-solid fa-chevron-right"></i></div>
-                    </div>
-                    <div class="class-card" onclick="navigateTo('learnView', document.querySelectorAll('.tab-item')[2])">
-                        <div class="class-info"><h2>Class 11th</h2><p>Higher Secondary Part I</p></div>
-                        <div class="class-action"><i class="fa-solid fa-chevron-right"></i></div>
-                    </div>
-                    <div class="class-card" onclick="navigateTo('learnView', document.querySelectorAll('.tab-item')[2])">
-                        <div class="class-info"><h2>Class 12th</h2><p>Higher Secondary Part II</p></div>
-                        <div class="class-action"><i class="fa-solid fa-chevron-right"></i></div>
-                    </div>
-                </div>
+    <!-- MAIN CONTENT -->
+    <main class="main-container">
 
-                <h3 class="section-title">Featured Materials</h3>
-                <div class="horizontal-scroll">
-                    <div class="featured-card" onclick="uiAction('Loading Important Notes')"><i class="fa-solid fa-star"></i><h4>Important Notes</h4></div>
-                    <div class="featured-card" onclick="uiAction('Loading Previous Papers')"><i class="fa-solid fa-clock-rotate-left"></i><h4>Previous Papers</h4></div>
-                    <div class="featured-card" onclick="uiAction('Loading Guess Papers')"><i class="fa-solid fa-lightbulb"></i><h4>Guess Papers</h4></div>
-                    <div class="featured-card" onclick="uiAction('Loading Model Papers')"><i class="fa-solid fa-file-signature"></i><h4>Model Papers</h4></div>
-                </div>
+      <!-- HOME -->
+      <section id="homeView" class="app-view active">
+        <div class="welcome-section">
+          <div>
+            <span class="eyebrow">YOUR PERSONAL LEARNING SPACE</span>
+            <h1 id="dynamicGreeting">Welcome to Study Verse</h1>
+            <p>Explore knowledge. Discover possibilities. Keep growing.</p>
+          </div>
+          <div class="welcome-decoration">✦</div>
+        </div>
 
-                <div class="ai-mentor-card" onclick="uiAction('AI Mentor Initializing...')">
-                    <div class="ai-badge">DEMO FEATURE</div>
-                    <div class="ai-content">
-                        <div class="ai-icon"><i class="fa-solid fa-robot"></i></div>
-                        <div class="ai-text">
-                            <h3>AI Study Mentor</h3>
-                            <p>Your intelligent assistant for instant doubt solving and concept simplification.</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="home-hero">
+          <div class="hero-content">
+            <span class="hero-label">THE FUTURE OF LEARNING</span>
+            <h2>Make every day<br>an opportunity to learn.</h2>
+            <p>
+              Access learning resources, explore new subjects and
+              develop skills for your future.
+            </p>
+            <button class="primary-btn" onclick="navigateTo('libraryView')">
+              Explore Library <span>→</span>
+            </button>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="hero-core">SV</div>
+            <span class="floating-star star-one">✦</span>
+            <span class="floating-star star-two">✧</span>
+          </div>
+        </div>
 
-                <h3 class="section-title">Practice Zone</h3>
-                <div class="test-grid">
-                    <div class="test-item" onclick="uiAction('Opening MCQs')"><i class="fa-solid fa-check-double"></i><span>MCQ Tests</span></div>
-                    <div class="test-item" onclick="uiAction('Opening Chapter Tests')"><i class="fa-solid fa-stopwatch"></i><span>Chapter Tests</span></div>
-                    <div class="test-item" onclick="uiAction('Opening Practice')"><i class="fa-solid fa-pen-to-square"></i><span>Practice</span></div>
-                    <div class="test-item" onclick="uiAction('Viewing Results')"><i class="fa-solid fa-chart-simple"></i><span>Results</span></div>
-                </div>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">DISCOVER</span>
+            <h2>Your learning universe</h2>
+          </div>
+        </div>
 
-                <footer class="app-footer">
-                    <h2 class="footer-brand">STUDY VERSE JKBOSE</h2>
-                    <p class="footer-slogan">Learn • Prepare • Achieve</p>
-                    <div class="footer-divider"></div>
-                    <p class="footer-founder">Founder: Adnan Manzoor</p>
-                </footer>
+        <div class="feature-grid">
+          <article class="feature-card" onclick="navigateTo('libraryView')">
+            <div class="feature-icon">▤</div>
+            <h3>Global Library</h3>
+            <p>Explore notes, documents and study materials.</p>
+            <span class="card-arrow">Explore →</span>
+          </article>
+
+          <article class="feature-card" onclick="navigateTo('learnView')">
+            <div class="feature-icon">✦</div>
+            <h3>Learning Space</h3>
+            <p>Discover learning topics and build new skills.</p>
+            <span class="card-arrow">Discover →</span>
+          </article>
+
+          <article class="feature-card" onclick="navigateTo('testsView')">
+            <div class="feature-icon">◈</div>
+            <h3>Practice & Tests</h3>
+            <p>Prepare with quizzes and knowledge checks.</p>
+            <span class="card-arrow">Practise →</span>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon">◎</div>
+            <h3>Study Workspace</h3>
+            <p>A space for your learning plans and study goals.</p>
+            <span class="coming-label">Coming soon</span>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">YOUR PLATFORM</span>
+            <h2>Built for curious minds</h2>
+          </div>
+        </div>
+
+        <div class="info-banner">
+          <div>
+            <h3>Learning has no boundaries.</h3>
+            <p>
+              Study Verse is being developed as a global learning
+              platform for students, educators and lifelong learners.
+            </p>
+          </div>
+          <span class="banner-symbol">∞</span>
+        </div>
+      </section>
+
+      <!-- GLOBAL LIBRARY -->
+      <section id="libraryView" class="app-view">
+        <div class="page-heading">
+          <span class="eyebrow">KNOWLEDGE COLLECTION</span>
+          <h1>Global Library</h1>
+          <p>Find and explore learning resources in one place.</p>
+        </div>
+
+        <div class="library-toolbar">
+          <input
+            type="search"
+            id="librarySearch"
+            placeholder="Search resources..."
+            aria-label="Search resources"
+          >
+
+          <select id="libraryCategory" aria-label="Select resource category">
+            <option value="">All categories</option>
+            <option value="Notes">Notes</option>
+            <option value="Previous Year Papers">Previous Year Papers</option>
+            <option value="Study Materials">Study Materials</option>
+            <option value="Guess Papers">Guess Papers</option>
+            <option value="Books">Books</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="library-intro">
+          <h2>Explore resources</h2>
+          <p>Resources published by the Study Verse team will appear here.</p>
+        </div>
+
+        <div id="libraryResourceList" class="resource-list">
+          <div class="empty-state">
+            <div class="empty-icon">▤</div>
+            <h3>Your library awaits</h3>
+            <p>Published learning resources will appear here.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LEARNING SPACE -->
+      <section id="learnView" class="app-view">
+        <div class="page-heading">
+          <span class="eyebrow">EXPLORE AND GROW</span>
+          <h1>Learning Space</h1>
+          <p>Discover areas of knowledge and develop new abilities.</p>
+        </div>
+
+        <div class="learning-grid">
+          <article class="learning-card">
+            <span class="learning-icon">⌘</span>
+            <h3>Technology</h3>
+            <p>Explore computing, digital skills and emerging technologies.</p>
+            <span class="coming-label">Learning content coming soon</span>
+          </article>
+
+          <article class="learning-card">
+            <span class="learning-icon">✧</span>
+            <h3>Science</h3>
+            <p>Discover scientific ideas, concepts and discoveries.</p>
+            <span class="coming-label">Learning content coming soon</span>
+          </article>
+
+          <article class="learning-card">
+            <span class="learning-icon">文</span>
+            <h3>Languages</h3>
+            <p>Explore languages, communication and writing.</p>
+            <span class="coming-label">Learning content coming soon</span>
+          </article>
+
+          <article class="learning-card">
+            <span class="learning-icon">◉</span>
+            <h3>Mathematics</h3>
+            <p>Strengthen mathematical understanding and problem-solving.</p>
+            <span class="coming-label">Learning content coming soon</span>
+          </article>
+
+          <article class="learning-card">
+            <span class="learning-icon">◇</span>
+            <h3>Humanities</h3>
+            <p>Explore history, society, culture and ideas.</p>
+            <span class="coming-label">Learning content coming soon</span>
+          </article>
+
+          <article class="learning-card">
+            <span class="learning-icon">↗</span>
+            <h3>Career Skills</h3>
+            <p>Build communication, creativity and professional skills.</p>
+            <span class="coming-label">Learning content coming soon</span>
+          </article>
+        </div>
+
+        <div class="info-banner">
+          <div>
+            <h3>AI Learning Assistant</h3>
+            <p>
+              An AI-powered learning assistant is planned for a future
+              release. It is not connected yet.
+            </p>
+          </div>
+          <span class="banner-symbol">✦</span>
+        </div>
+      </section>
+
+      <!-- PRACTICE AND TESTS -->
+      <section id="testsView" class="app-view">
+        <div class="page-heading">
+          <span class="eyebrow">TEST YOUR KNOWLEDGE</span>
+          <h1>Practice & Tests</h1>
+          <p>Prepare, practise and strengthen your understanding.</p>
+        </div>
+
+        <div class="practice-grid">
+          <article class="practice-card">
+            <div class="feature-icon">?</div>
+            <h3>Knowledge Quizzes</h3>
+            <p>Short quizzes to check your understanding.</p>
+            <span class="coming-label">Coming soon</span>
+          </article>
+
+          <article class="practice-card">
+            <div class="feature-icon">▣</div>
+            <h3>Practice Tests</h3>
+            <p>Structured practice for different learning levels.</p>
+            <span class="coming-label">Coming soon</span>
+          </article>
+
+          <article class="practice-card">
+            <div class="feature-icon">✧</div>
+            <h3>Flashcards</h3>
+            <p>Review important concepts and key terms.</p>
+            <span class="coming-label">Coming soon</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- PROFILE -->
+      <section id="profileView" class="app-view">
+        <div class="page-heading">
+          <span class="eyebrow">YOUR ACCOUNT</span>
+          <h1>Profile</h1>
+          <p>Manage your Study Verse account.</p>
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-avatar">A</div>
+          <div class="profile-details">
+            <h2 id="profileName">Learner</h2>
+            <p id="profileEmail">Not signed in</p>
+          </div>
+        </div>
+
+        <div class="account-information">
+          <h3>Account information</h3>
+
+          <div class="account-row">
+            <span>Student ID</span>
+            <strong id="profileStudentId">Not assigned</strong>
+          </div>
+
+          <div class="account-row">
+            <span>Account role</span>
+            <strong id="accountRole">Guest</strong>
+          </div>
+
+          <div class="account-row">
+            <span>Account status</span>
+            <strong id="accountStatus">Not signed in</strong>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-heading">
+            <span class="eyebrow">STUDY VERSE ACCOUNT</span>
+            <h2 id="authTitle">Welcome back</h2>
+            <p id="authDescription">Sign in or create your learner account.</p>
+          </div>
+
+          <!-- LOGIN FORM -->
+          <form id="loginForm" onsubmit="event.preventDefault(); loginStudent();">
+            <label for="loginEmail">Email address</label>
+            <input
+              id="loginEmail"
+              type="email"
+              placeholder="Enter your email"
+              autocomplete="email"
+              required
+            >
+
+            <label for="loginPass">Password</label>
+            <input
+              id="loginPass"
+              type="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            >
+
+            <button id="loginBtn" class="primary-btn full-btn" type="submit">
+              Sign in
+            </button>
+
+            <p class="auth-switch">
+              New to Study Verse?
+              <button type="button" class="text-btn" onclick="toggleAuthMode()">
+                Create an account
+              </button>
+            </p>
+          </form>
+
+          <!-- REGISTRATION FORM -->
+          <form id="registerForm" class="hidden" onsubmit="event.preventDefault(); registerStudent();">
+            <label for="regName">Full name</label>
+            <input
+              id="regName"
+              type="text"
+              placeholder="Enter your full name"
+              autocomplete="name"
+              required
+            >
+
+            <label for="regClass">Learning level / class</label>
+            <input
+              id="regClass"
+              type="text"
+              placeholder="Example: School, College, University"
+              required
+            >
+
+            <label for="regEmail">Email address</label>
+            <input
+              id="regEmail"
+              type="email"
+              placeholder="Enter your email"
+              autocomplete="email"
+              required
+            >
+
+            <label for="regPass">Create password</label>
+            <input
+              id="regPass"
+              type="password"
+              placeholder="Create a password"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            >
+
+            <button id="regBtn" class="primary-btn full-btn" type="submit">
+              Create account
+            </button>
+
+            <p class="auth-note">
+              New accounts may require administrator approval before access
+              is granted.
+            </p>
+
+            <p class="auth-switch">
+              Already registered?
+              <button type="button" class="text-btn" onclick="toggleAuthMode()">
+                Sign in
+              </button>
+            </p>
+          </form>
+
+          <button type="button" class="secondary-btn full-btn" onclick="logoutStudent()">
+            Sign out
+          </button>
+        </div>
+      </section>
+
+      <!-- ADMIN DASHBOARD -->
+      <section id="adminView" class="app-view">
+        <div class="page-heading">
+          <span class="eyebrow">PLATFORM MANAGEMENT</span>
+          <h1>Admin Dashboard</h1>
+          <p>Manage learner accounts and platform access.</p>
+        </div>
+
+        <div class="admin-stats">
+          <article class="stat-card">
+            <span>Total users</span>
+            <strong id="adminTotalUsers">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Pending</span>
+            <strong id="adminPendingUsers">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Approved</span>
+            <strong id="adminApprovedUsers">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Rejected</span>
+            <strong id="adminRejectedUsers">0</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Suspended</span>
+            <strong id="adminSuspendedUsers">0</strong>
+          </article>
+        </div>
+
+        <div class="admin-management">
+          <div class="admin-toolbar">
+            <div>
+              <h2>Learner management</h2>
+              <p>Review account applications and access status.</p>
             </div>
-        </section>
 
-        <!-- DIGITAL LIBRARY VIEW -->
-        <section id="libraryView" class="app-view">
-            <header class="home-header" style="flex-direction: column; align-items: flex-start; gap: 15px;">
-                <div>
-                    <h2 style="font-size: 1.8rem; font-weight: 900;">Digital Library</h2>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Premium Notes, PYQs & Resources</p>
-                </div>
-                <div class="search-bar">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search notes, subjects, PYQs..." id="librarySearch">
-                </div>
-            </header>
-            
-            <div class="scroll-container">
-                <div class="filter-chips">
-                    <div class="chip active">All Resources</div>
-                    <div class="chip">Class 10th</div>
-                    <div class="chip">Class 12th</div>
-                    <div class="chip">PYQs</div>
-                    <div class="chip">Model Papers</div>
-                </div>
+            <button class="secondary-btn" type="button" onclick="loadAdminDashboard()">
+              ↻ Refresh
+            </button>
+          </div>
 
-                <div class="library-grid">
-                    <div class="lib-card">
-                        <div class="lib-icon" style="color: #ff4757;"><i class="fa-solid fa-file-pdf"></i></div>
-                        <div class="lib-info">
-                            <h4>Physics - Optics</h4>
-                            <p>Class 12th • Smart Notes</p>
-                            <span class="lib-meta">Verified • 2.4 MB</span>
-                        </div>
-                        <button class="lib-btn" onclick="uiAction('Downloading Physics Notes...')"><i class="fa-solid fa-download"></i></button>
-                    </div>
-                    
-                    <div class="lib-card">
-                        <div class="lib-icon" style="color: var(--brand-purple);"><i class="fa-solid fa-file-pdf"></i></div>
-                        <div class="lib-info">
-                            <h4>Maths Solved Paper</h4>
-                            <p>Class 10th • PYQ 2024</p>
-                            <span class="lib-meta">Official Board Paper</span>
-                        </div>
-                        <button class="lib-btn" onclick="uiAction('Downloading Maths PYQ...')"><i class="fa-solid fa-download"></i></button>
-                    </div>
+          <div class="admin-filters">
+            <input
+              id="adminStudentSearch"
+              type="search"
+              placeholder="Search learners..."
+              aria-label="Search learners"
+            >
 
-                    <div class="lib-card">
-                        <div class="lib-icon" style="color: var(--brand-cyan);"><i class="fa-solid fa-file-pdf"></i></div>
-                        <div class="lib-info">
-                            <h4>Chemistry - Organic</h4>
-                            <p>Class 11th • Chapter Guide</p>
-                            <span class="lib-meta">Verified • 3.1 MB</span>
-                        </div>
-                        <button class="lib-btn" onclick="uiAction('Downloading Chemistry Notes...')"><i class="fa-solid fa-download"></i></button>
-                    </div>
-                </div>
+            <select id="adminStatusFilter" aria-label="Filter by account status">
+              <option value="">All statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="SUSPENDED">Suspended</option>
+            </select>
+          </div>
+
+          <div id="adminStudentList" class="admin-student-list">
+            <div class="empty-state">
+              <h3>Admin data will appear here</h3>
+              <p>Administrator access is required to manage accounts.</p>
             </div>
-        </section>
-        
-        <!-- LEARN HUB VIEW -->
-        <section id="learnView" class="app-view">
-            <header class="home-header">
-                <div>
-                    <h2 style="font-size: 1.8rem; font-weight: 900;">Learn Hub</h2>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Class-wise Academic System</p>
-                </div>
-            </header>
-            
-            <div class="scroll-container">
-                <h3 class="section-title" style="margin-top: 5px;">Select Your Academic Stream</h3>
-                <div class="subject-grid">
-                    <div class="subject-card" onclick="uiAction('Opening Class 10th Subjects...')">
-                        <div class="sub-icon"><i class="fa-solid fa-book"></i></div>
-                        <div class="sub-text">
-                            <h3>Class 10th</h3>
-                            <p>Maths, Science, SST & Languages</p>
-                        </div>
-                        <i class="fa-solid fa-arrow-right sub-arrow"></i>
-                    </div>
-                    <div class="subject-card" onclick="uiAction('Opening Medical Stream...')">
-                        <div class="sub-icon" style="color: #ff4757; background: rgba(255,71,87,0.1);"><i class="fa-solid fa-briefcase-medical"></i></div>
-                        <div class="sub-text">
-                            <h3>Class 11th & 12th</h3>
-                            <p>Medical (PCB)</p>
-                        </div>
-                        <i class="fa-solid fa-arrow-right sub-arrow"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PRACTICE VIEW -->
-        <section id="testsView" class="app-view">
-            <header class="home-header"><h2>Practice Center</h2></header>
-            <div class="empty-state" style="margin: 20px;"><i class="fa-solid fa-clipboard-question"></i><p>Interactive testing loading...</p></div>
-        </section>
-
-        <!-- PROFILE / AUTH VIEW -->
-        <section id="profileView" class="app-view">
-            <header class="home-header">
-                <div>
-                    <h2 style="font-size: 1.8rem; font-weight: 900;">Student Portal</h2>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Access your personal workspace</p>
-                </div>
-            </header>
-            
-            <div class="scroll-container">
-                <div class="glass-panel" style="padding: 24px; margin-top: 10px; border-radius: 20px;">
-                    <div id="loginForm">
-                        <h3 style="margin-bottom: 20px;">Welcome Back</h3>
-                        <div class="input-group">
-                            <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="loginEmail" class="form-input" placeholder="Email Address">
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="loginPass" class="form-input" placeholder="Password">
-                        </div>
-                        <button class="btn-premium btn-large" style="margin-top: 10px;" id="loginBtn" onclick="loginStudent()">Secure Login</button>
-                        <p style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary);">
-                            New student? <span style="color: var(--brand-cyan); font-weight: 700; cursor: pointer;" onclick="toggleAuthMode('register')">Create Account</span>
-                        </p>
-                    </div>
-
-                    <div id="registerForm" class="hidden">
-                        <h3 style="margin-bottom: 20px;">Join Study Verse</h3>
-                        <div class="input-group">
-                            <i class="fa-solid fa-user"></i>
-                            <input type="text" id="regName" class="form-input" placeholder="Preferred Name">
-                        </div>
-                        
-                        <div class="input-group select-group" style="padding-right: 0;">
-                            <i class="fa-solid fa-graduation-cap"></i>
-                            <select id="regClass" class="form-input" style="background: transparent; appearance: none; padding-right: 15px;">
-                                <option value="" disabled selected>Select Your Class</option>
-                                <option value="9th">Class 9th</option>
-                                <option value="10th">Class 10th</option>
-                                <option value="11th">Class 11th</option>
-                                <option value="12th">Class 12th</option>
-                            </select>
-                        </div>
-
-                        <div class="input-group">
-                            <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="regEmail" class="form-input" placeholder="Email Address">
-                        </div>
-                        <div class="input-group">
-                            <i class="fa-solid fa-lock"></i>
-                            <input type="password" id="regPass" class="form-input" placeholder="Create Password">
-                        </div>
-                        <button class="btn-premium btn-large" style="margin-top: 10px;" id="regBtn" onclick="registerStudent()">Register Account</button>
-                        <p style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary);">
-                            Already registered? <span style="color: var(--brand-cyan); font-weight: 700; cursor: pointer;" onclick="toggleAuthMode('login')">Login Here</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
     </main>
 
-    <!-- PREMIUM BOTTOM NAVIGATION -->
-    <nav id="bottomNav" class="glass-panel bottom-tab-bar hidden">
-        <div class="tab-item active" onclick="navigateTo('homeView', this)">
-            <i class="fa-solid fa-house"></i><span>Home</span>
-        </div>
-        <div class="tab-item" onclick="navigateTo('libraryView', this)">
-            <i class="fa-solid fa-book-open"></i><span>Library</span>
-        </div>
-        <div class="tab-item" onclick="navigateTo('learnView', this)">
-            <i class="fa-solid fa-graduation-cap"></i><span>Learn</span>
-        </div>
-        <div class="tab-item" onclick="navigateTo('testsView', this)">
-            <i class="fa-solid fa-pen-to-square"></i><span>Practice</span>
-        </div>
-        <div class="tab-item" onclick="navigateTo('profileView', this)">
-            <i class="fa-solid fa-user"></i><span>Profile</span>
-        </div>
+    <!-- BOTTOM NAVIGATION -->
+    <nav id="bottomNav" class="bottom-nav" aria-label="Main navigation">
+      <button class="tab-item active" type="button" data-view="homeView" onclick="navigateTo('homeView')">
+        <span class="tab-icon">⌂</span>
+        <span>Home</span>
+      </button>
+
+      <button class="tab-item" type="button" data-view="libraryView" onclick="navigateTo('libraryView')">
+        <span class="tab-icon">▤</span>
+        <span>Library</span>
+      </button>
+
+      <button class="tab-item" type="button" data-view="learnView" onclick="navigateTo('learnView')">
+        <span class="tab-icon">✦</span>
+        <span>Learn</span>
+      </button>
+
+      <button class="tab-item" type="button" data-view="testsView" onclick="navigateTo('testsView')">
+        <span class="tab-icon">◈</span>
+        <span>Practice</span>
+      </button>
+
+      <button class="tab-item" type="button" data-view="profileView" onclick="navigateTo('profileView')">
+        <span class="tab-icon">◎</span>
+        <span>Profile</span>
+      </button>
     </nav>
 
-    <div id="uiToast" class="ui-toast hidden">Action Logged</div>
-    <script src="core.js"></script>
+  </div>
+
+  <!-- GLOBAL NOTIFICATION / TOAST -->
+  <div id="uiToast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- SUPABASE CLIENT: LOAD BEFORE core.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- APPLICATION LOGIC -->
+  <script src="core.js"></script>
+
 </body>
 </html>
