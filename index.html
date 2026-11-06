@@ -465,83 +465,72 @@
             onclick="logoutStudent()">
             Sign out
           </button>
+          
+        <!-- ROLE-BASED DASHBOARD ACCESS -->
+        <div id="roleDashboardPanel" class="hidden">
+
+          <div class="page-heading">
+            <span class="eyebrow">YOUR LEARNING CONTROL CENTRE</span>
+            <h2>My Dashboard</h2>
+            <p>Your personalised Study Verse dashboard.</p>
+          </div>
+
+          <!-- STUDENT DASHBOARD -->
+          <div id="studentDashboardAccess" class="feature-grid hidden">
+
+            <article class="feature-card"
+              onclick="navigateTo('learnView')">
+              <div class="feature-icon">✦</div>
+              <h3>My Learning</h3>
+              <p>Notes, goals and flashcards.</p>
+              <span class="card-arrow">Open →</span>
+            </article>
+
+            <article class="feature-card"
+              onclick="navigateTo('libraryView')">
+              <div class="feature-icon">▤</div>
+              <h3>Learning Library</h3>
+              <p>Explore learning resources.</p>
+              <span class="card-arrow">Open →</span>
+            </article>
+
+            <article class="feature-card"
+              onclick="navigateTo('testsView')">
+              <div class="feature-icon">◈</div>
+              <h3>Practice Centre</h3>
+              <p>Access your practice activities.</p>
+              <span class="card-arrow">Open →</span>
+            </article>
+
+          </div>
+
+          <!-- ADMIN DASHBOARD ACCESS -->
+          <div id="adminDashboardAccess" class="hidden">
+            <div class="info-banner">
+              <span class="eyebrow">ADMINISTRATION</span>
+              <h3>Platform Control Centre</h3>
+              <p>Manage users and platform operations.</p>
+              <button class="primary-btn" type="button"
+                onclick="navigateTo('adminView')">
+                Open Admin Dashboard →
+              </button>
+            </div>
+          </div>
+
+          <p id="dashboardAccessMessage" class="auth-note">
+            Dashboard access requires an approved account.
+          </p>
+
+        </div>
+
         </div>
 
       </section>
 
       <!-- PUBLIC FOUNDER PROFILE -->
-      <section id="founderView" class="app-view">
+   
 
-        <div class="page-heading">
-          <span class="eyebrow">THE STORY BEHIND THE PLATFORM</span>
-          <h1>Meet the Founder</h1>
-          <p>The person, purpose and vision behind Study Verse.</p>
-        </div>
-
-        <div class="founder-public-card">
-
-          <div class="founder-public-image-wrap">
-            <img id="founderPublicImage"
-              class="hidden"
-              alt="Study Verse Founder portrait">
-          </div>
-
-          <div class="founder-public-details">
-            <span class="eyebrow">FOUNDER OF STUDY VERSE</span>
-
-            <h2 id="founderPublicName">Adnan Manzoor</h2>
-
-            <p id="founderPublicDesignation">Founder & Creator</p>
-
-            <div class="founder-public-biography">
-              <h3>About</h3>
-              <p id="founderPublicBiography">
-                The Founder profile will be available here soon.
-              </p>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="founder-information-grid">
-
-          <article class="info-banner">
-            <div>
-              <span class="eyebrow">THE BIGGER PICTURE</span>
-              <h3>Vision</h3>
-              <p id="founderPublicVision">
-                To make learning more accessible and meaningful for
-                learners everywhere.
-              </p>
-            </div>
-            <span class="banner-symbol">∞</span>
-          </article>
-
-          <article class="info-banner">
-            <div>
-              <span class="eyebrow">OUR PURPOSE</span>
-              <h3>Mission</h3>
-              <p id="founderPublicMission">
-                To build a learning ecosystem that helps people discover
-                knowledge and develop their potential.
-              </p>
-            </div>
-            <span class="banner-symbol">✦</span>
-          </article>
-
-        </div>
-
-        <div class="founder-social-section">
-          <h3>Connect</h3>
-          <div id="founderPublicSocialLinks" class="founder-social-links"></div>
-        </div>
-
-        <button class="secondary-btn" type="button"
-          onclick="navigateTo('homeView')">
-          ← Back to Home
-        </button>
-
-      </section>
+      
 
       <!-- ADMIN DASHBOARD -->
       <section id="adminView" class="app-view">
