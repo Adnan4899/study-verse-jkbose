@@ -464,75 +464,132 @@
           <button type="button" class="secondary-btn full-btn"
             onclick="logoutStudent()">
             Sign out
-          </button>
-          
+        </div>
+        </button>
+        </div>
+        
         <!-- ROLE-BASED DASHBOARD ACCESS -->
-        <div id="roleDashboardPanel" class="hidden">
+<div id="roleDashboardPanel" class="hidden">
 
-          <div class="page-heading">
-            <span class="eyebrow">YOUR LEARNING CONTROL CENTRE</span>
-            <h2>My Dashboard</h2>
-            <p>Your personalised Study Verse dashboard.</p>
-          </div>
+    <div class="page-heading">
+        <span class="eyebrow">YOUR LEARNING CONTROL CENTRE</span>
+        <h2>My Dashboard</h2>
+        <p>Your personalised Study Verse dashboard.</p>
+    </div>
 
-          <!-- STUDENT DASHBOARD -->
-          <div id="studentDashboardAccess" class="feature-grid hidden">
+    <!-- STUDENT DASHBOARD -->
+    <div id="studentDashboardAccess" class="feature-grid hidden">
 
-            <article class="feature-card"
-              onclick="navigateTo('learnView')">
-              <div class="feature-icon">✦</div>
-              <h3>My Learning</h3>
-              <p>Notes, goals and flashcards.</p>
-              <span class="card-arrow">Open →</span>
-            </article>
+        <article class="feature-card"
+            onclick="navigateTo('learnView')">
+            <div class="feature-icon">✎</div>
+            <h3>My Learning</h3>
+            <p>Manage your notes, goals and flashcards.</p>
+            <span class="card-arrow">Open →</span>
+        </article>
 
-            <article class="feature-card"
-              onclick="navigateTo('libraryView')">
-              <div class="feature-icon">▤</div>
-              <h3>Learning Library</h3>
-              <p>Explore learning resources.</p>
-              <span class="card-arrow">Open →</span>
-            </article>
+        <article class="feature-card"
+            onclick="navigateTo('libraryView')">
+            <div class="feature-icon">▤</div>
+            <h3>Learning Library</h3>
+            <p>Explore learning resources and study materials.</p>
+            <span class="card-arrow">Open →</span>
+        </article>
 
-            <article class="feature-card"
-              onclick="navigateTo('testsView')">
-              <div class="feature-icon">◈</div>
-              <h3>Practice Centre</h3>
-              <p>Access your practice activities.</p>
-              <span class="card-arrow">Open →</span>
-            </article>
+        <article class="feature-card"
+            onclick="navigateTo('testsView')">
+            <div class="feature-icon">◎</div>
+            <h3>Practice Centre</h3>
+            <p>Access your practice activities and tests.</p>
+            <span class="card-arrow">Open →</span>
+        </article>
 
-          </div>
+    </div>
 
-          <!-- ADMIN DASHBOARD ACCESS -->
-          <div id="adminDashboardAccess" class="hidden">
-            <div class="info-banner">
-              <span class="eyebrow">ADMINISTRATION</span>
-              <h3>Platform Control Centre</h3>
-              <p>Manage users and platform operations.</p>
-              <button class="primary-btn" type="button"
+    <!-- ADMIN DASHBOARD ACCESS -->
+    <div id="adminDashboardAccess" class="hidden">
+
+        <div class="info-banner">
+            <span class="eyebrow">ADMINISTRATION</span>
+            <h3>Platform Control Centre</h3>
+            <p>Manage learner accounts and platform operations.</p>
+
+            <button class="primary-btn" type="button"
                 onclick="navigateTo('adminView')">
                 Open Admin Dashboard →
-              </button>
+            </button>
+        </div>
+
+    </div>
+
+    <p id="dashboardAccessMessage" class="auth-note">
+        Dashboard access requires an approved account.
+    </p>
+
+</div>
+
+</section>
+
+<!-- PUBLIC FOUNDER PROFILE -->
+<section id="founderView" class="app-view">
+
+    <div class="page-heading">
+        <span class="eyebrow">THE PERSON BEHIND THE VISION</span>
+        <h1>Meet the Founder</h1>
+        <p>The vision, leadership and purpose behind Study Verse.</p>
+    </div>
+
+    <div class="founder-profile-card">
+
+        <div class="founder-profile-image">
+            <img
+                id="founderPublicImage"
+                src=""
+                alt="Study Verse Founder"
+                loading="lazy"
+                onerror="this.style.display='none';"
+            >
+        </div>
+
+        <div class="founder-profile-details">
+
+            <h2 id="founderPublicName">Founder</h2>
+
+            <p id="founderPublicDesignation">
+                Founder of Study Verse
+            </p>
+
+            <div id="founderPublicBiography">
+                <p>Building a learning ecosystem for students and lifelong learners.</p>
             </div>
-          </div>
-
-          <p id="dashboardAccessMessage" class="auth-note">
-            Dashboard access requires an approved account.
-          </p>
 
         </div>
 
-        </div>
+    </div>
 
-      </section>
+    <div class="founder-vision-grid">
 
-      <!-- PUBLIC FOUNDER PROFILE -->
-   
+        <article class="feature-card">
+            <h3>Our Vision</h3>
+            <div id="founderPublicVision">
+                <p>Making quality learning opportunities accessible to everyone.</p>
+            </div>
+        </article>
 
-      
+        <article class="feature-card">
+            <h3>Our Mission</h3>
+            <div id="founderPublicMission">
+                <p>Creating an inclusive, accessible and innovative learning ecosystem.</p>
+            </div>
+        </article>
 
-      <!-- ADMIN DASHBOARD -->
+    </div>
+
+    <div id="founderPublicSocialLinks"></div>
+
+</section>
+
+<!-- ADMIN DASHBOARD -->
       <section id="adminView" class="app-view">
 
         <div class="page-heading">
