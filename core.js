@@ -1,2773 +1,818 @@
-
-/* ============================================================
+/* ==========================================================
    STUDY VERSE — GLOBAL LEARNING ECOSYSTEM
-   Core Application Engine
-   Founder: Adnan Manzoor
-   Version: 2.1.0
-   ============================================================ */
-
+   Core application engine | Founder: Adnan Manzoor
+   File: core.js
+   ========================================================== */
 "use strict";
 
-/* ------------------------------------------------------------
-   1. APPLICATION CONFIGURATION
------------------------------------------------------------- */
+/*
+  IMPORTANT:
+  - This file uses the existing Supabase project configuration.
+  - The Supabase publishable/anon key is intended for browser use.
+  - Database access must still be protected by correct RLS policies.
+  - AI requests are deliberately not sent directly to an AI provider
+    from the browser. Configure a secure server/Edge Function endpoint
+    in STUDY_VERSE_CONFIG.aiEndpoint before enabling live AI responses.
+*/
 
-const STUDY_VERSE = Object.freeze({
-    name: "STUDY VERSE",
-    tagline: "Learn • Explore • Evolve",
-    founder: "Adnan Manzoor",
-    version: "2.1.0",
-
-    supabaseUrl: "https://fwxraksvzrofgjbqvplm.supabase.co",
-    supabaseKey: "sb_publishable_Fc7hos5g-BoT0cVWBnVWSQ_IC8OdPAh",
-
-    tables: {
-        profiles: "profiles",
-        resources: "study_resources",
-        posts: "posts",
-        founder: "founder_profile"
-    },
-
-    storageBuckets: [
-        "PYQs",
-        "Guess Papers",
-        "Study Materials",
-        "jkbose-notes"
-    ],
-
-    founderBucket: "founder-media",
-
-    roles: {
-        ADMIN: "ADMIN",
-        STUDENT: "STUDENT",
-        EDUCATOR: "EDUCATOR",
-        CONTRIBUTOR: "CONTRIBUTOR"
-    },
-
-    statuses: {
-        PENDING: "PENDING",
-        APPROVED: "APPROVED",
-        REJECTED: "REJECTED",
-        SUSPENDED: "SUSPENDED"
-    },
-
-    founderImageMaxSize: 5 * 1024 * 1024,
-    resourceMaxSize: 20 * 1024 * 1024
+const STUDY_VERSE_CONFIG = Object.freeze({
+  name: "Study Verse",
+  version: "3.0.0",
+  founder: "Adnan Manzoor",
+  supabaseUrl: "https://fwxraksvzrofgjbqvplm.supabase.co",
+  supabaseKey: "sb_publishable_Fc7hos5g-BoT0cVWBnVWSQ_IC8OdPAh",
+  aiEndpoint: "", // Add a secured Supabase Edge Function URL when deployed.
+  tables: {
+    profiles: "profiles",
+    resources: "study_resources",
+    founder: "founder_profile",
+    posts: "posts"
+  },
+  storageBuckets: ["PYQs", "Guess Papers", "Study Materials", "jkbose-notes"],
+  resourceBucket: "Study Materials",
+  maxUploadBytes: 20 * 1024 * 1024
 });
 
-/* ------------------------------------------------------------
-   2. APPLICATION STATE
------------------------------------------------------------- */
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const state = {
+    db: null, user: null, profile: null, currentView: "homeView",
+    theme: "dark", curriculum: "JKBOSE", level: "Class 10",
+    country: "India", language: "English", resources: [],
+    practice: [], questionIndex: 0, score: 0, answered: false,
+    practiceHistory: [], notes: [], goals: [], saved: [],
+    timer: null, secondsLeft: 25 * 60, timerRunning: false,
+    aiMode: "study", searchItems: [], adminProfiles: []
+  };
 
-let supabaseClient = null;
+  const sampleQuestions = [
+    {subject:"Science",level:"Class 10",difficulty:"Easy",q:"Which process do green plants use to prepare food?",options:["Respiration","Photosynthesis","Transpiration","Fermentation"],answer:1,explain:"Photosynthesis uses light energy to convert carbon dioxide and water into glucose."},
+    {subject:"Mathematics",level:"Class 10",difficulty:"Easy",q:"What is the value of 7 × 8?",options:["54","56","64","48"],answer:1,explain:"7 multiplied by 8 equals 56."},
+    {subject:"English",level:"Class 10",difficulty:"Easy",q:"Which word is a synonym of “brief”?",options:["Lengthy","Concise","Unclear","Distant"],answer:1,explain:"Concise means brief while still expressing the important information."},
+    {subject:"History",level:"Class 10",difficulty:"Medium",q:"The French Revolution began in which year?",options:["1776","1789","1815","1848"],answer:1,explain:"The French Revolution began in 1789."},
+    {subject:"Geography",level:"Class 10",difficulty:"Medium",q:"Which is the largest ocean on Earth?",options:["Atlantic","Indian","Arctic","Pacific"],answer:3,explain:"The Pacific Ocean is the largest ocean on Earth."},
+    {subject:"Computer Science",level:"Class 10",difficulty:"Easy",q:"What does CPU stand for?",options:["Central Processing Unit","Computer Personal Utility","Core Program Unit","Central Power Utility"],answer:0,explain:"CPU stands for Central Processing Unit."},
+    {subject:"Mathematics",level:"Class 12",difficulty:"Medium",q:"What is the derivative of x² with respect to x?",options:["x","2x","x²","2"],answer:1,explain:"Using the power rule, d(x²)/dx = 2x."},
+    {subject:"Biology",level:"Class 12",difficulty:"Medium",q:"Which molecule carries genetic information in most organisms?",options:["ATP","DNA","Glucose","Lipid"],answer:1,explain:"DNA stores hereditary information in most organisms."}
+  ];
 
-let currentUser = null;
-let currentProfile = null;
+  const curriculumCatalog = {
+    JKBOSE: ["Class 9","Class 10","Class 11","Class 12"],
+    CBSE: ["Class 6","Class 7","Class 8","Class 9","Class 10","Class 11","Class 12"],
+    CISCE: ["Class 6","Class 7","Class 8","Class 9","Class 10","Class 11","Class 12"],
+    "Cambridge International": ["Lower Secondary","IGCSE","AS Level","A Level"],
+    "International Baccalaureate": ["MYP","DP"],
+    "Other curriculum": ["Beginner","Intermediate","Advanced"]
+  };
 
-let toastTimeout = null;
-let currentView = "homeView";
-
-let adminStudents = [];
-let libraryResources = [];
-
-let founderProfile = null;
-let founderImageObject = null;
-let founderImageBlob = null;
-let founderImageFile = null;
-
-let founderCropState = {
-    zoom: 1,
-    x: 0.5,
-    y: 0.5
-};
-
-let appInitialized = false;
-let founderEditorInitialized = false;
-
-/* ------------------------------------------------------------
-   3. SUPABASE CONNECTION
------------------------------------------------------------- */
-
-function getSupabase() {
-    if (supabaseClient) return supabaseClient;
-
-    if (!window.supabase) {
-        throw new Error(
-            "Supabase library is not loaded. Check index.html."
-        );
-    }
-
-    supabaseClient = window.supabase.createClient(
-        STUDY_VERSE.supabaseUrl,
-        STUDY_VERSE.supabaseKey
-    );
-
-    return supabaseClient;
-}
-
-/* ------------------------------------------------------------
-   4. GENERAL UTILITIES
------------------------------------------------------------- */
-
-function getElement(id) {
-    return document.getElementById(id);
-}
-
-function getValue(id) {
-    return getElement(id)?.value?.trim() || "";
-}
-
-function setText(id, value) {
-    const element = getElement(id);
-    if (element) element.textContent = value ?? "";
-}
-
-function setButtonText(button, text) {
-    if (button) button.textContent = text;
-}
-
-function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#039;"
-    })[char]);
-}
-
-function formatDate(value) {
-    if (!value) return "Not available";
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return "Not available";
-    }
-
-    return new Intl.DateTimeFormat(undefined, {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-    }).format(date);
-}
-
-function uiAction(message, type = "info") {
-    const toast = getElement("uiToast");
-
-    if (!toast) {
-        console.log("[Study Verse]", message);
-        return;
-    }
-
-    toast.textContent = message;
-    toast.dataset.type = type;
-    toast.classList.remove("hidden");
-    toast.style.opacity = "1";
-
-    clearTimeout(toastTimeout);
-
-    toastTimeout = setTimeout(() => {
-        toast.style.opacity = "0";
-
-        setTimeout(() => {
-            toast.classList.add("hidden");
-        }, 300);
-    }, 3000);
-}
-
-function showError(error, fallback = "Something went wrong.") {
-    console.error("[Study Verse Error]", error);
-
-    uiAction(
-        error?.message || fallback,
-        "error"
-    );
-}
-
-function setLoading(element, loading, loadingText = "Please wait...") {
-    if (!element) return;
-
-    if (loading) {
-        if (!element.dataset.originalText) {
-            element.dataset.originalText = element.textContent;
-        }
-
-        element.disabled = true;
-        element.textContent = loadingText;
+  function db() {
+    if (state.db) return state.db;
+    if (!window.supabase?.createClient) throw new Error("Supabase library did not load. Check the internet connection and index.html script.");
+    state.db = window.supabase.createClient(STUDY_VERSE_CONFIG.supabaseUrl, STUDY_VERSE_CONFIG.supabaseKey);
+    return state.db;
+  }
+  function text(id, value) { const el = $(id); if (el) el.textContent = value ?? ""; }
+  function value(id) { return $(id)?.value?.trim() || ""; }
+  function safe(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function toast(message, type = "info") {
+    const region = $("toastRegion");
+    if (!region) { console.log("[Study Verse]", message); return; }
+    region.textContent = message;
+    region.className = `toast-region toast-${type}`;
+    region.setAttribute("role","status");
+    region.classList.remove("hidden");
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => region.classList.add("hidden"), 3800);
+  }
+  function setBusy(button, busy, label = "Please wait…") {
+    if (!button) return;
+    if (busy) {
+      button.dataset.oldLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = label;
     } else {
-        element.disabled = false;
-
-        if (element.dataset.originalText) {
-            element.textContent = element.dataset.originalText;
-            delete element.dataset.originalText;
-        }
+      button.disabled = false;
+      if (button.dataset.oldLabel) button.textContent = button.dataset.oldLabel;
+      delete button.dataset.oldLabel;
     }
-}
+  }
+  function showLoading(show, message = "Loading Study Verse…") {
+    $("globalLoading")?.classList.toggle("hidden", !show);
+    text("globalLoadingText", message);
+  }
+  function isAdmin() {
+    return !!state.user && state.profile?.role === "ADMIN" && state.profile?.status === "APPROVED";
+  }
+  function requireLogin() {
+    if (state.user && state.profile) return true;
+    toast("Please sign in to use this feature.");
+    navigateTo("profileView");
+    showAuthMode("login");
+    return false;
+  }
+  function dispatch(name, detail = {}) {
+    window.dispatchEvent(new CustomEvent(`studyverse:${name}`, {detail}));
+  }
+  function dateLabel() {
+    text("todayDate", new Intl.DateTimeFormat(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date()));
+  }
 
-function requireLogin() {
-    if (!currentUser || !currentProfile) {
-        uiAction("Please log in to continue.");
-        navigateTo("profileView");
-        return false;
-    }
-
-    return true;
-}
-
-/* ------------------------------------------------------------
-   5. ROLE AND PERMISSION HELPERS
------------------------------------------------------------- */
-
-function isAdmin() {
-    return Boolean(
-        currentUser &&
-        currentProfile &&
-        currentProfile.role === STUDY_VERSE.roles.ADMIN &&
-        currentProfile.status === STUDY_VERSE.statuses.APPROVED
-    );
-}
-
-function isEducator() {
-    return Boolean(
-        currentProfile &&
-        currentProfile.role === STUDY_VERSE.roles.EDUCATOR &&
-        currentProfile.status === STUDY_VERSE.statuses.APPROVED
-    );
-}
-
-function isApprovedUser() {
-    return Boolean(
-        currentUser &&
-        currentProfile &&
-        currentProfile.status === STUDY_VERSE.statuses.APPROVED
-    );
-}
-
-function requireAdmin() {
-    if (!isAdmin()) {
-        uiAction("Administrator permission required.", "error");
-        return false;
-    }
-
-    return true;
-}
-
-function updateRoleInterface() {
-    document.querySelectorAll("[data-admin-only]").forEach(element => {
-        element.classList.toggle("hidden", !isAdmin());
+  // Navigation and layout
+  function navigateTo(viewId) {
+    const target = $(viewId);
+    if (!target) { toast("This section is not available."); return; }
+    $$(".app-view").forEach(view => view.classList.toggle("active", view.id === viewId));
+    $$(".nav-item, .tab-item, [data-view]").forEach(item => {
+      if (item.dataset.view) item.classList.toggle("active", item.dataset.view === viewId);
     });
+    state.currentView = viewId;
+    const titles = {
+      homeView:"Your learning, reimagined", exploreView:"Explore learning",
+      learnView:"Learning space", libraryView:"Learning library", testsView:"Practice & tests",
+      aiView:"AI study companion", workspaceView:"My workspace", opportunitiesView:"Opportunities",
+      communityView:"Learning community", profileView:"Your account", settingsView:"Settings",
+      adminView:"Administration", aboutView:"About Study Verse"
+    };
+    text("topbarTitle", titles[viewId] || "Study Verse");
+    $("mobileMenuBackdrop")?.classList.add("hidden");
+    if (viewId === "libraryView") loadLibraryResources();
+    if (viewId === "adminView") refreshAdminDashboard();
+    if (viewId === "aboutView") loadFounderProfile();
+    if (viewId === "homeView") dateLabel();
+    dispatch("navigate", {viewId});
+    window.scrollTo?.({top:0,behavior:"smooth"});
+  }
+  function toggleMobileMenu() {
+    $("mobileMenuBackdrop")?.classList.toggle("hidden");
+    $("desktopSidebar")?.classList.toggle("mobile-open");
+  }
+  function closeMobileMenu() {
+    $("mobileMenuBackdrop")?.classList.add("hidden");
+    $("desktopSidebar")?.classList.remove("mobile-open");
+  }
+  function toggleTheme() {
+    setTheme(state.theme === "dark" ? "light" : "dark");
+  }
+  function setTheme(theme) {
+    state.theme = theme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = state.theme;
+    document.documentElement.classList.toggle("light", state.theme === "light");
+    try { localStorage.setItem("sv-theme", state.theme); } catch {}
+    text("themeLabel", state.theme === "dark" ? "Dark mode" : "Light mode");
+    text("themeIcon", state.theme === "dark" ? "☾" : "☀");
+  }
+  function openGlobalSearch() {
+    $("globalSearchDialog")?.showModal?.();
+    $("globalSearchDialog")?.classList.remove("hidden");
+    $("globalSearchInput")?.focus();
+  }
+  function openNotifications() {
+    $("notificationsDialog")?.showModal?.();
+    $("notificationsDialog")?.classList.remove("hidden");
+  }
+  function closeDialog(id) {
+    const dialog = $(id);
+    if (!dialog) return;
+    if (dialog.close) dialog.close(); else dialog.classList.add("hidden");
+  }
 
-    document.querySelectorAll("[data-educator-only]").forEach(element => {
-        element.classList.toggle(
-            "hidden",
-            !(isEducator() || isAdmin())
-        );
-    });
-
-    setText("accountRole", currentProfile?.role || "GUEST");
-    setText("accountStatus", currentProfile?.status || "NOT LOGGED IN");
-}
-
-/* ------------------------------------------------------------
-   6. STUDENT REGISTRATION
------------------------------------------------------------- */
-
-async function registerStudent() {
-    const name = getValue("regName");
-    const studentClass = getValue("regClass");
-    const email = getValue("regEmail");
-    const password = getElement("regPass")?.value || "";
-
-    const button = getElement("regBtn");
-
-    if (!name || !studentClass || !email || !password) {
-        uiAction("Please complete all required fields.");
-        return;
+  // Curriculum selection
+  function handleCurriculumChange() {
+    const select = $("homeCurriculum");
+    const chosen = select?.value || state.curriculum;
+    const levels = curriculumCatalog[chosen] || curriculumCatalog["Other curriculum"];
+    state.curriculum = chosen;
+    state.level = levels[0];
+    const levelSelect = $("homeLevel");
+    if (levelSelect) {
+      levelSelect.innerHTML = levels.map(x => `<option value="${safe(x)}">${safe(x)}</option>`).join("");
     }
+  }
+  function saveHomeCurriculum() {
+    state.curriculum = $("homeCurriculum")?.value || state.curriculum;
+    state.level = $("homeLevel")?.value || state.level;
+    try { localStorage.setItem("sv-curriculum", JSON.stringify({curriculum:state.curriculum,level:state.level})); } catch {}
+    text("curriculumSaveMessage", "Your learning preferences have been saved.");
+    text("homeCountry", state.country);
+    toast("Learning preferences saved.","success");
+  }
 
-    if (password.length < 6) {
-        uiAction("Password must contain at least 6 characters.");
-        return;
-    }
+  // Explore subjects
+  const subjects = [
+    ["Mathematics","Numbers, patterns and problem-solving","∑","Class 6–12"],
+    ["Science","Discover the world through science","⚛","Class 6–12"],
+    ["Physics","Understand matter, energy and motion","◉","Class 9–12"],
+    ["Chemistry","Explore elements and reactions","⚗","Class 9–12"],
+    ["Biology","Study living systems and life","⌁","Class 9–12"],
+    ["English","Build reading, writing and communication","Aa","All levels"],
+    ["History","Explore people, events and the past","⌛","All levels"],
+    ["Geography","Understand Earth and its environments","◎","All levels"],
+    ["Computer Science","Learn computing and digital skills","⌘","All levels"],
+    ["Economics","Understand choices and economies","↗","Class 11–12"],
+    ["Political Science","Explore governments and society","⚖","Class 11–12"],
+    ["Languages","Learn languages and communication","文","All levels"]
+  ];
+  function renderSubjects(filter = "") {
+    const grid = $("exploreGrid");
+    if (!grid) return;
+    const q = filter.toLowerCase();
+    const matches = subjects.filter(s => s.join(" ").toLowerCase().includes(q));
+    grid.innerHTML = matches.length ? matches.map(s => `
+      <button class="subject-card" type="button" data-subject="${safe(s[0])}">
+        <span class="subject-symbol">${safe(s[2])}</span>
+        <span class="subject-title">${safe(s[0])}</span>
+        <span class="subject-description">${safe(s[1])}</span>
+        <span class="subject-level">${safe(s[3])}</span>
+      </button>`).join("") : `<p class="empty-state">No subjects match your search.</p>`;
+  }
+  function searchExplore(query) { renderSubjects(query || ""); }
+  function filterExplore(filter) { renderSubjects(filter || ""); }
+  function openSubject(subject) {
+    text("learningPathTitle", subject);
+    text("learningPathDescription", `Explore ${subject} lessons, concepts and learning resources.`);
+    navigateTo("learnView");
+    loadLibraryResources(subject);
+  }
 
-    setLoading(button, true, "Creating account...");
-
+  // Library
+  async function loadLibraryResources(subject = "") {
+    const container = $("libraryResourcesGrid");
+    if (container && !state.resources.length) container.innerHTML = `<p class="empty-state">Loading learning resources…</p>`;
     try {
-        const db = getSupabase();
-
-        const { data, error } = await db.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: name,
-                    class_level: studentClass,
-                    role: "STUDENT"
-                }
-            }
-        });
-
-        if (error) throw error;
-        if (!data.user) throw new Error("Account creation was unsuccessful.");
-
-        uiAction(
-            data.session
-                ? "Registration received. Your account awaits approval."
-                : "Registration received. Check your email if confirmation is required."
-        );
-
-        ["regName", "regClass", "regEmail", "regPass"].forEach(id => {
-            const element = getElement(id);
-            if (element) element.value = "";
-        });
-
-        toggleAuthMode("login");
-
+      const {data,error} = await db().from(STUDY_VERSE_CONFIG.tables.resources)
+        .select("*").order("created_at",{ascending:false}).limit(100);
+      if (error) throw error;
+      state.resources = data || [];
+      renderLibrary(subject);
     } catch (error) {
-        showError(error, "Registration failed.");
-    } finally {
-        setLoading(button, false);
+      console.error(error);
+      if (container) container.innerHTML = `<p class="empty-state">Resources could not be loaded. Please check your connection or try again later.</p>`;
     }
-}
-
-/* ------------------------------------------------------------
-   7. STUDENT LOGIN
------------------------------------------------------------- */
-
-async function loginStudent() {
-    const email = getValue("loginEmail");
-    const password = getElement("loginPass")?.value || "";
-    const button = getElement("loginBtn");
-
-    if (!email || !password) {
-        uiAction("Enter your email and password.");
-        return;
-    }
-
-    setLoading(button, true, "Authenticating...");
-
-    try {
-        const db = getSupabase();
-
-        const { data, error } = await db.auth.signInWithPassword({
-            email,
-            password
-        });
-
-        if (error) throw error;
-
-        const { data: profile, error: profileError } = await db
-            .from(STUDY_VERSE.tables.profiles)
-            .select("*")
-            .eq("id", data.user.id)
-            .single();
-
-        if (profileError || !profile) {
-            await db.auth.signOut();
-            throw new Error("Your account profile could not be found.");
-        }
-
-        if (profile.status !== "APPROVED") {
-            await db.auth.signOut();
-
-            if (profile.status === "REJECTED") {
-                throw new Error("Your application was not approved.");
-            }
-
-            if (profile.status === "SUSPENDED") {
-                throw new Error("Your account is suspended.");
-            }
-
-            throw new Error(
-                "Your account is awaiting administrator approval."
-            );
-        }
-
-        currentUser = data.user;
-        currentProfile = profile;
-
-        updateUserInterface();
-
-        ["loginEmail", "loginPass"].forEach(id => {
-            const element = getElement(id);
-            if (element) element.value = "";
-        });
-
-        uiAction("Welcome to Study Verse!");
-        navigateTo("homeView");
-
-    } catch (error) {
-        showError(error, "Unable to log in.");
-    } finally {
-        setLoading(button, false);
-    }
-}
-
-/* ------------------------------------------------------------
-   8. SESSION RESTORATION
------------------------------------------------------------- */
-
-async function restoreSession() {
-    try {
-        const db = getSupabase();
-
-        const { data, error } = await db.auth.getSession();
-
-        if (error) throw error;
-
-        const session = data.session;
-
-        if (!session) return false;
-
-        const { data: profile, error: profileError } = await db
-            .from(STUDY_VERSE.tables.profiles)
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-        if (
-            profileError ||
-            !profile ||
-            profile.status !== "APPROVED"
-        ) {
-            await db.auth.signOut();
-            currentUser = null;
-            currentProfile = null;
-            return false;
-        }
-
-        currentUser = session.user;
-        currentProfile = profile;
-
-        updateUserInterface();
-
-        return true;
-
-    } catch (error) {
-        console.error("[Study Verse] Session restoration:", error);
-        return false;
-    }
-}
-
-/* ------------------------------------------------------------
-   9. USER INTERFACE UPDATE
------------------------------------------------------------- */
-
-function updateUserInterface() {
-    if (!currentProfile) return;
-
-    const fullName = currentProfile.full_name || "Student";
-    const firstName = fullName.split(" ")[0];
-
-    setText("studentNameDisplay", firstName);
-    setText("profileName", fullName);
-    setText("profileEmail", currentUser?.email || "");
-    setText(
-        "profileStudentId",
-        currentProfile.student_id || "Not assigned"
-    );
-
-    setText("accountRole", currentProfile.role);
-    setText("accountStatus", currentProfile.status);
-
-    updateRoleInterface();
-
-    window.dispatchEvent(
-        new CustomEvent("studyverse:authenticated", {
-            detail: {
-                role: currentProfile.role
-            }
-        })
-    );
-}
-
-/* ------------------------------------------------------------
-   10. LOGOUT
------------------------------------------------------------- */
-
-async function logoutStudent() {
-    try {
-        const db = getSupabase();
-        const { error } = await db.auth.signOut();
-
-        if (error) throw error;
-
-        currentUser = null;
-        currentProfile = null;
-
-        uiAction("You have been logged out.");
-
-        window.location.reload();
-
-    } catch (error) {
-        showError(error, "Unable to log out.");
-    }
-}
-
-/* ------------------------------------------------------------
-   11. PASSWORD RESET
------------------------------------------------------------- */
-
-async function resetStudentPassword() {
-    const email = getValue("loginEmail");
-
-    if (!email) {
-        uiAction("Enter your registered email first.");
-        return;
-    }
-
-    try {
-        const db = getSupabase();
-
-        const { error } = await db.auth.resetPasswordForEmail(email);
-
-        if (error) throw error;
-
-        uiAction(
-            "If the account exists, password reset instructions will be sent."
-        );
-
-    } catch (error) {
-        showError(error, "Password reset could not be requested.");
-    }
-}
-
-/* ------------------------------------------------------------
-   12. NAVIGATION ENGINE
------------------------------------------------------------- */
-
-function navigateTo(viewId, element = null) {
-    const target = getElement(viewId);
-
-    if (!target) {
-        console.warn("Study Verse view not found:", viewId);
-        uiAction("This section is not available yet.");
-        return;
-    }
-
-    document.querySelectorAll(".app-view").forEach(view => {
-        view.classList.remove("active");
-    });
-
-    target.classList.add("active");
-
-    document.querySelectorAll(".tab-item").forEach(tab => {
-        tab.classList.remove("active");
-    });
-
-    if (element) {
-        element.classList.add("active");
-    } else {
-        const matchingTab = document.querySelector(
-            `.tab-item[data-view="${viewId}"]`
-        );
-
-        if (matchingTab) matchingTab.classList.add("active");
-    }
-
-    currentView = viewId;
-
-    window.dispatchEvent(
-        new CustomEvent("studyverse:navigate", {
-            detail: { viewId }
-        })
-    );
-
-    if (viewId === "adminView" && isAdmin()) {
-        loadAdminDashboard();
-        loadFounderEditor();
-    }
-
-    if (viewId === "libraryView") {
-        loadLibraryResources();
-    }
-
-    if (viewId === "founderView") {
-        loadPublicFounderProfile();
-    }
-
-    if (viewId === "homeView") {
-        setDynamicGreeting();
-    }
-}
-
-function goBack() {
-    if (currentView !== "homeView") {
-        navigateTo("homeView");
-    }
-}
-
-function toggleAuthMode(mode) {
-    const login = getElement("loginForm");
-    const register = getElement("registerForm");
-
-    if (!login || !register) return;
-
-    if (mode === "register") {
-        login.classList.add("hidden");
-        register.classList.remove("hidden");
-    } else {
-        register.classList.add("hidden");
-        login.classList.remove("hidden");
-    }
-}
-
-/* ------------------------------------------------------------
-   13. ONBOARDING
------------------------------------------------------------- */
-
-function completeOnboarding() {
-    const onboarding = getElement("onboardingScreen");
-    const appRoot = getElement("app-root");
-    const bottomNav = getElement("bottomNav");
-
-    if (onboarding) {
-        onboarding.style.animation = "fadeOut 0.4s forwards";
-    }
-
-    setTimeout(() => {
-        if (onboarding) {
-            onboarding.classList.remove("active-flex");
-            onboarding.classList.add("hidden");
-        }
-
-        if (appRoot) appRoot.classList.remove("hidden");
-        if (bottomNav) bottomNav.classList.remove("hidden");
-
-    }, 400);
-}
-
-/* ------------------------------------------------------------
-   14. GREETING AND HOME
------------------------------------------------------------- */
-
-function setDynamicGreeting() {
-    const hour = new Date().getHours();
-
-    let greeting = "Good Evening,";
-
-    if (hour >= 5 && hour < 12) {
-        greeting = "Good Morning,";
-    } else if (hour >= 12 && hour < 17) {
-        greeting = "Good Afternoon,";
-    }
-
-    setText("dynamicGreeting", greeting);
-}
-
-/* ------------------------------------------------------------
-   15. ADMIN DASHBOARD
------------------------------------------------------------- */
-
-async function loadAdminDashboard() {
-    if (!requireAdmin()) return;
-
-    try {
-        const db = getSupabase();
-
-        const { data, error } = await db
-            .from(STUDY_VERSE.tables.profiles)
-            .select("*")
-            .order("created_at", { ascending: false });
-
-        if (error) throw error;
-
-        adminStudents = data || [];
-
-        const total = adminStudents.length;
-        const pending = adminStudents.filter(s => s.status === "PENDING").length;
-        const approved = adminStudents.filter(s => s.status === "APPROVED").length;
-        const rejected = adminStudents.filter(s => s.status === "REJECTED").length;
-        const suspended = adminStudents.filter(s => s.status === "SUSPENDED").length;
-
-        setText("adminTotalUsers", total);
-        setText("adminPendingUsers", pending);
-        setText("adminApprovedUsers", approved);
-        setText("adminRejectedUsers", rejected);
-        setText("adminSuspendedUsers", suspended);
-
-        renderAdminStudents(adminStudents);
-
-    } catch (error) {
-        showError(
-            error,
-            "Unable to load administration data. Check database permissions."
-        );
-    }
-}
-
-/* ------------------------------------------------------------
-   16. ADMIN STUDENT LIST
------------------------------------------------------------- */
-
-function renderAdminStudents(students) {
-    const container = getElement("adminStudentList");
+  }
+  function renderLibrary(subject = "") {
+    const container = $("libraryResourcesGrid");
     if (!container) return;
-
-    if (!students || students.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>No student records found</h3>
-                <p>Student applications will appear here.</p>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = students.map(student => {
-        const name = escapeHTML(student.full_name || "Unnamed student");
-        const email = escapeHTML(student.email || "Email unavailable");
-        const role = escapeHTML(student.role || "STUDENT");
-        const status = escapeHTML(student.status || "PENDING");
-        const id = escapeHTML(student.id);
-
-        const actions = student.role === "ADMIN"
-            ? `<span>Administrator account</span>`
-            : `
-                <div class="admin-actions">
-                    ${student.status !== "APPROVED" ? `
-                        <button onclick="updateStudentStatus('${id}','APPROVED')">
-                            Approve
-                        </button>
-                    ` : ""}
-
-                    ${student.status !== "REJECTED" ? `
-                        <button onclick="updateStudentStatus('${id}','REJECTED')">
-                            Reject
-                        </button>
-                    ` : ""}
-
-                    ${student.status !== "SUSPENDED" ? `
-                        <button onclick="updateStudentStatus('${id}','SUSPENDED')">
-                            Suspend
-                        </button>
-                    ` : ""}
-                </div>
-            `;
-
-        return `
-            <article class="admin-student-card">
-                <h3>${name}</h3>
-                <p>${email}</p>
-                <p>Role: ${role}</p>
-                <p>Status: <strong>${status}</strong></p>
-                <p>Class: ${escapeHTML(student.class_level || "Not specified")}</p>
-                <p>Registered: ${formatDate(student.created_at)}</p>
-                ${actions}
-            </article>
-        `;
-    }).join("");
-}
-
-/* ------------------------------------------------------------
-   17. ADMIN STUDENT STATUS MANAGEMENT
------------------------------------------------------------- */
-
-async function updateStudentStatus(studentId, newStatus) {
-    if (!requireAdmin()) return;
-
-    const allowedStatuses = ["APPROVED", "REJECTED", "SUSPENDED"];
-
-    if (!allowedStatuses.includes(newStatus)) {
-        uiAction("Invalid account status.");
-        return;
-    }
-
-    if (!studentId || studentId === currentUser.id) {
-        uiAction("This account cannot be changed here.");
-        return;
-    }
-
-    if (!window.confirm(`Change this student's status to ${newStatus}?`)) {
-        return;
-    }
-
-    try {
-        const db = getSupabase();
-
-        const { error } = await db
-            .from(STUDY_VERSE.tables.profiles)
-            .update({ status: newStatus })
-            .eq("id", studentId);
-
-        if (error) throw error;
-
-        uiAction(`Student status updated to ${newStatus}.`);
-        await loadAdminDashboard();
-
-    } catch (error) {
-        showError(error, "Unable to update student status.");
-    }
-}
-
-async function refreshAdminDashboard() {
-    if (!requireAdmin()) return;
-
-    uiAction("Refreshing administration dashboard...");
-    await loadAdminDashboard();
-}
-
-/* ------------------------------------------------------------
-   18. STUDENT SEARCH AND FILTER
------------------------------------------------------------- */
-
-function filterAdminStudents() {
-    const search = getValue("adminStudentSearch").toLowerCase();
-    const status = getValue("adminStatusFilter");
-
-    const filtered = adminStudents.filter(student => {
-        const matchesSearch = [
-            student.full_name,
-            student.email,
-            student.student_id,
-            student.class_level
-        ].some(value =>
-            String(value || "").toLowerCase().includes(search)
-        );
-
-        return matchesSearch && (!status || student.status === status);
+    const query = (value("librarySearchInput") + " " + subject).toLowerCase().trim();
+    const type = $("libraryTypeFilter")?.value || "";
+    const level = $("libraryLevelFilter")?.value || "";
+    const rows = state.resources.filter(r => {
+      const searchable = [r.title,r.description,r.subject,r.resource_type,r.type,r.class_level,r.level].join(" ").toLowerCase();
+      const approved = !r.status || ["APPROVED","PUBLISHED","ACTIVE"].includes(String(r.status).toUpperCase());
+      return approved && (!query || searchable.includes(query)) &&
+        (!type || (r.resource_type || r.type || "").toLowerCase() === type.toLowerCase()) &&
+        (!level || (r.class_level || r.level || "").toLowerCase().includes(level.toLowerCase()));
     });
+    text("libraryResultCount", `${rows.length} resources`);
+    container.innerHTML = rows.length ? rows.map(r => {
+      const title = safe(r.title || "Learning resource");
+      const description = safe(r.description || "Open this resource to continue learning.");
+      const file = r.file_url || r.url || r.public_url || "";
+      return `<article class="resource-card">
+        <div class="resource-card-meta">${safe(r.subject || "General")} · ${safe(r.class_level || r.level || "All levels")}</div>
+        <h3>${title}</h3><p>${description}</p>
+        <span class="resource-type">${safe(r.resource_type || r.type || "Resource")}</span>
+        ${file ? `<a href="${safe(file)}" target="_blank" rel="noopener noreferrer">Open resource ↗</a>` : `<span class="muted">Resource link unavailable</span>`}
+      </article>`;
+    }).join("") : `<p class="empty-state">No approved resources match these filters yet.</p>`;
+  }
+  function filterLibraryResources() { renderLibrary(); }
+  function clearLibraryFilters() {
+    ["librarySearchInput","libraryTypeFilter","libraryLevelFilter"].forEach(id => { if ($(id)) $(id).value = ""; });
+    renderLibrary();
+  }
 
-    renderAdminStudents(filtered);
-}
-
-/* ------------------------------------------------------------
-   19. RESOURCE LIBRARY
------------------------------------------------------------- */
-
-async function loadLibraryResources() {
-    try {
-        const db = getSupabase();
-
-        const { data, error } = await db
-            .from(STUDY_VERSE.tables.resources)
-            .select("*")
-            .eq("is_published", true)
-            .order("created_at", { ascending: false });
-
-        if (error) throw error;
-
-        libraryResources = data || [];
-        filterLibraryResources();
-
-    } catch (error) {
-        console.error("[Study Verse] Library loading:", error);
-        uiAction("Unable to load learning resources.");
+  // Practice sessions
+  function startPracticeSession() {
+    const subject = $("practiceSubject")?.value || "All";
+    const difficulty = $("practiceDifficulty")?.value || "All";
+    const count = Math.max(1, Math.min(20, Number($("practiceQuestionCount")?.value || 5)));
+    let pool = sampleQuestions.filter(q =>
+      (subject === "All" || q.subject.toLowerCase() === subject.toLowerCase()) &&
+      (difficulty === "All" || q.difficulty.toLowerCase() === difficulty.toLowerCase())
+    );
+    if (!pool.length) pool = sampleQuestions.slice();
+    state.practice = [...pool].sort(() => Math.random() - 0.5).slice(0,count);
+    state.questionIndex = 0; state.score = 0; state.answered = false;
+    $("practiceSession")?.classList.remove("hidden");
+    renderPracticeQuestion();
+  }
+  function renderPracticeQuestion() {
+    const q = state.practice[state.questionIndex];
+    if (!q) return;
+    text("practiceProgressLabel", `Question ${state.questionIndex + 1} of ${state.practice.length}`);
+    text("practiceQuestionCounter", `${state.questionIndex + 1}/${state.practice.length}`);
+    text("practiceQuestionTitle", q.subject);
+    text("practiceQuestionBody", q.q);
+    text("practiceFeedback", "");
+    const box = $("practiceQuestionBody");
+    if (box) {
+      const options = q.options.map((option,i) => `<button type="button" class="practice-option" data-answer="${i}">${String.fromCharCode(65+i)}. ${safe(option)}</button>`).join("");
+      box.innerHTML = `<p>${safe(q.q)}</p><div class="practice-options">${options}</div>`;
     }
-}
-
-function filterLibraryResources() {
-    const search = getValue("librarySearch").toLowerCase();
-    const category = getValue("libraryCategory").toLowerCase();
-
-    const filtered = libraryResources.filter(resource => {
-        const text = [
-            resource.title,
-            resource.description,
-            resource.subject,
-            resource.category,
-            resource.resource_type,
-            resource.class_level
-        ].join(" ").toLowerCase();
-
-        const matchesSearch = !search || text.includes(search);
-        const matchesCategory = !category ||
-            String(resource.category || "").toLowerCase() === category;
-
-        return matchesSearch && matchesCategory;
+    state.answered = false;
+    const next = $("practiceNextButton");
+    if (next) { next.disabled = true; next.textContent = state.questionIndex === state.practice.length - 1 ? "Finish practice" : "Next question"; }
+  }
+  function choosePracticeAnswer(index) {
+    if (state.answered) return;
+    const q = state.practice[state.questionIndex];
+    if (!q) return;
+    state.answered = true;
+    const correct = Number(index) === q.answer;
+    if (correct) state.score++;
+    $$(".practice-option").forEach((button,i) => {
+      button.disabled = true;
+      if (i === q.answer) button.classList.add("correct");
+      else if (i === Number(index)) button.classList.add("incorrect");
     });
-
-    renderLibraryResources(filtered);
-}
-
-function renderLibraryResources(resources) {
-    const container = getElement("libraryResourceList");
-    if (!container) return;
-
-    if (!resources || resources.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>No published resources found</h3>
-                <p>Try another search or category.</p>
-            </div>
-        `;
-        return;
+    text("practiceFeedback", `${correct ? "Correct!" : "Not quite."} ${q.explain}`);
+    if ($("practiceNextButton")) $("practiceNextButton").disabled = false;
+  }
+  function submitOrNextPractice() {
+    if (!state.answered) { toast("Choose an answer first."); return; }
+    if (state.questionIndex < state.practice.length - 1) {
+      state.questionIndex++; renderPracticeQuestion(); return;
     }
+    const total = state.practice.length;
+    state.practiceHistory.unshift({date:new Date().toISOString(),score:state.score,total});
+    const session = $("practiceSession");
+    if (session) session.innerHTML = `<div class="practice-result"><h3>Practice complete</h3><p>Your score: <strong>${state.score} / ${total}</strong></p><button type="button" onclick="startPracticeSession()">Try another session</button></div>`;
+    renderPracticeHistory();
+  }
+  function endPracticeSession() {
+    $("practiceSession")?.classList.add("hidden");
+    state.practice = [];
+  }
+  function renderPracticeHistory() {
+    const el = $("practiceHistory");
+    if (el) el.innerHTML = state.practiceHistory.length ? state.practiceHistory.slice(0,5).map(h => `<p>${new Date(h.date).toLocaleDateString()} — ${h.score}/${h.total}</p>`).join("") : `<p class="muted">Your completed sessions will appear here.</p>`;
+  }
 
-    container.innerHTML = resources.map(resource => `
-        <article class="resource-card">
-            <h3>${escapeHTML(resource.title)}</h3>
-            <p>${escapeHTML(resource.description || "")}</p>
-            <p>Subject: ${escapeHTML(resource.subject || "General")}</p>
-            <p>Type: ${escapeHTML(resource.resource_type || "Resource")}</p>
-            <p>Level: ${escapeHTML(resource.class_level || "All levels")}</p>
-            <button onclick="downloadStudyResource('${escapeHTML(resource.id)}')">
-                Open resource
-            </button>
-        </article>
-    `).join("");
-}
-
-async function downloadStudyResource(resourceId) {
+  // AI companion: secure endpoint required for live model responses
+  function setAIMode(mode) {
+    state.aiMode = mode;
+    const descriptions = {
+      study:"Understand concepts step by step, with clear explanations.",
+      explain:"Break a difficult topic into simpler ideas and examples.",
+      writing:"Plan and improve your writing while keeping your own voice.",
+      quiz:"Create revision questions and help you reflect on your answers."
+    };
+    text("aiModeDescription", descriptions[mode] || descriptions.study);
+    $$(".ai-mode").forEach(el => el.classList.toggle("active",el.dataset.mode === mode));
+  }
+  function useAIPrompt(prompt) {
+    const input = $("aiMessageInput");
+    if (input) { input.value = prompt || ""; input.focus(); }
+  }
+  function appendChat(role, message) {
+    const list = $("aiChatMessages");
+    if (!list) return;
+    const node = document.createElement("div");
+    node.className = `chat-message ${role}`;
+    node.textContent = message;
+    list.appendChild(node);
+    list.scrollTop = list.scrollHeight;
+  }
+  async function sendAIMessage(event) {
+    event?.preventDefault();
+    const input = $("aiMessageInput");
+    const message = input?.value?.trim();
+    if (!message) return;
+    appendChat("user",message); input.value = "";
+    if (!STUDY_VERSE_CONFIG.aiEndpoint) {
+      appendChat("assistant","The AI service is not connected yet. Study Verse needs a secure server-side AI endpoint before it can send prompts to an AI model. Your message has not been sent to an external AI service.");
+      text("aiConnectionState","AI service not configured");
+      return;
+    }
     try {
-        const db = getSupabase();
-
-        const resource = libraryResources.find(item => item.id === resourceId);
-
-        if (!resource || !resource.file_path) {
-            throw new Error("Resource not found.");
-        }
-
-        const parts = resource.file_path.split("/");
-        const bucket = parts.shift();
-        const path = parts.join("/");
-
-        if (!STUDY_VERSE.storageBuckets.includes(bucket) || !path) {
-            throw new Error("The resource storage path is invalid.");
-        }
-
-        const { data, error } = await db.storage
-            .from(bucket)
-            .createSignedUrl(path, 60);
-
-        if (error) throw error;
-
-        if (!data?.signedUrl) {
-            throw new Error("Secure resource link could not be created.");
-        }
-
-        window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-
+      text("aiConnectionState","Connecting securely…");
+      const response = await fetch(STUDY_VERSE_CONFIG.aiEndpoint,{
+        method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${state.user ? (await db().auth.getSession()).data.session?.access_token || "" : ""}`},
+        body:JSON.stringify({message,mode:state.aiMode,curriculum:state.curriculum,level:state.level})
+      });
+      if (!response.ok) throw new Error(`AI service returned ${response.status}`);
+      const data = await response.json();
+      appendChat("assistant",String(data.reply || data.answer || "No response was returned."));
+      text("aiConnectionState","Connected");
     } catch (error) {
-        showError(error, "Unable to open this resource.");
+      console.error(error); appendChat("assistant","The AI service could not be reached. Please try again later.");
+      text("aiConnectionState","Connection unavailable");
     }
-}
+  }
 
-/* ------------------------------------------------------------
-   20. ADMIN RESOURCE UPLOAD
------------------------------------------------------------- */
-
-async function uploadStudyResource(formData) {
-    if (!requireAdmin()) return;
-
-    if (!(formData instanceof FormData)) {
-        uiAction("Invalid resource upload information.");
-        return;
-    }
-
-    const file = formData.get("file");
-    const title = String(formData.get("title") || "").trim();
-    const bucket = String(formData.get("bucket") || "").trim();
-
-    if (!file || !title || !bucket) {
-        uiAction("Complete the resource information first.");
-        return;
-    }
-
-    if (!STUDY_VERSE.storageBuckets.includes(bucket)) {
-        uiAction("Invalid storage category.");
-        return;
-    }
-
-    if (file.size > STUDY_VERSE.resourceMaxSize) {
-        uiAction("Maximum file size is 20 MB.");
-        return;
-    }
-
-    const allowedTypes = [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "text/plain"
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-        uiAction("Only PDF, DOCX and TXT files are accepted.");
-        return;
-    }
-
-    let uploadedPath = null;
-
-    try {
-        const db = getSupabase();
-
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const filePath = `${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-
-        const { error: uploadError } = await db.storage
-            .from(bucket)
-            .upload(filePath, file, {
-                cacheControl: "3600",
-                upsert: false
-            });
-
-        if (uploadError) throw uploadError;
-
-        uploadedPath = filePath;
-
-        const { error: insertError } = await db
-            .from(STUDY_VERSE.tables.resources)
-            .insert({
-                title,
-                description: String(formData.get("description") || ""),
-                subject: String(formData.get("subject") || ""),
-                category: String(formData.get("category") || "General"),
-                class_level: String(formData.get("class_level") || ""),
-                resource_type: String(formData.get("resource_type") || "Study Material"),
-                academic_year: String(formData.get("academic_year") || ""),
-                chapter: String(formData.get("chapter") || ""),
-                file_path: `${bucket}/${filePath}`,
-                uploaded_by: currentUser.id,
-                is_published: false
-            });
-
-        if (insertError) throw insertError;
-
-        uploadedPath = null;
-
-        uiAction("Resource uploaded for review.");
-        await loadLibraryResources();
-
-    } catch (error) {
-        if (uploadedPath) {
-            await getSupabase().storage
-                .from(bucket)
-                .remove([uploadedPath]);
-        }
-
-        showError(error, "Resource upload failed.");
-    }
-}
-
-/* ------------------------------------------------------------
-   21. ADMIN RESOURCE PUBLISHING
------------------------------------------------------------- */
-
-async function setResourcePublished(resourceId, published) {
-    if (!requireAdmin()) return;
-
-    try {
-        const db = getSupabase();
-
-        const { error } = await db
-            .from(STUDY_VERSE.tables.resources)
-            .update({ is_published: Boolean(published) })
-            .eq("id", resourceId);
-
-        if (error) throw error;
-
-        uiAction(
-            published ? "Resource published." : "Resource unpublished."
-        );
-
-        await loadLibraryResources();
-
-    } catch (error) {
-        showError(error, "Unable to update resource.");
-    }
-}
-
-/* ------------------------------------------------------------
-   22. STUDENT PROFILE UPDATE
------------------------------------------------------------- */
-
-async function updateStudentProfile(updates) {
+  // Personal workspace — local device storage; account sync requires backend tables.
+  function readLocal(key, fallback = []) {
+    try { const v = JSON.parse(localStorage.getItem(key)); return Array.isArray(v) ? v : fallback; } catch { return fallback; }
+  }
+  function saveLocal(key, data) {
+    try { localStorage.setItem(key,JSON.stringify(data)); return true; } catch { toast("Device storage is unavailable."); return false; }
+  }
+  function renderNotes() {
+    const list = $("personalNotesList");
+    if (!list) return;
+    list.innerHTML = state.notes.length ? state.notes.map((n,i) => `<article class="workspace-item"><h3>${safe(n.title)}</h3><p>${safe(n.body).replace(/\n/g,"<br>")}</p><button type="button" data-delete-note="${i}">Delete</button></article>`).join("") : `<p class="empty-state">Your saved notes will appear here.</p>`;
+  }
+  function savePersonalNote() {
     if (!requireLogin()) return;
+    const title = value("personalNoteTitle"), body = value("personalNoteBody");
+    if (!title || !body) { toast("Add a note title and its content."); return; }
+    state.notes.unshift({title,body,createdAt:new Date().toISOString()});
+    saveLocal("sv-notes",state.notes);
+    $("personalNoteTitle").value = ""; $("personalNoteBody").value = "";
+    renderNotes(); text("noteSaveStatus","Saved on this device.");
+  }
+  function renderGoals() {
+    const list = $("learningGoalsList");
+    if (!list) return;
+    list.innerHTML = state.goals.length ? state.goals.map((g,i) => `<label class="goal-item"><input type="checkbox" data-goal="${i}" ${g.done?"checked":""}><span>${safe(g.title)}</span><button type="button" data-delete-goal="${i}" aria-label="Delete goal">×</button></label>`).join("") : `<p class="empty-state">Add a goal to start tracking your progress.</p>`;
+  }
+  function addLearningGoal(event) {
+    event?.preventDefault();
+    if (!requireLogin()) return;
+    const title = value("goalInput");
+    if (!title) { toast("Enter a learning goal."); return; }
+    state.goals.unshift({title,done:false,createdAt:new Date().toISOString()});
+    saveLocal("sv-goals",state.goals); $("goalInput").value = ""; renderGoals();
+  }
+  function updateGoal(index,done) {
+    if (!state.goals[index]) return;
+    state.goals[index].done = done; saveLocal("sv-goals",state.goals); renderGoals();
+  }
+  function toggleFocusTimer() {
+    if (state.timerRunning) {
+      clearInterval(state.timer); state.timer = null; state.timerRunning = false;
+      text("focusTimerButton","Resume"); text("focusTimerStatus","Paused"); return;
+    }
+    state.timerRunning = true; text("focusTimerButton","Pause"); text("focusTimerStatus","Focus session in progress");
+    state.timer = setInterval(() => {
+      state.secondsLeft = Math.max(0,state.secondsLeft - 1);
+      renderTimer();
+      if (!state.secondsLeft) {
+        clearInterval(state.timer); state.timer = null; state.timerRunning = false;
+        text("focusTimerButton","Start focus"); text("focusTimerStatus","Session complete — take a short break.");
+        toast("Focus session complete!","success");
+      }
+    },1000);
+  }
+  function renderTimer() {
+    const m = String(Math.floor(state.secondsLeft/60)).padStart(2,"0");
+    const s = String(state.secondsLeft%60).padStart(2,"0");
+    text("focusTimerDisplay",`${m}:${s}`);
+  }
+  function resetFocusTimer() {
+    clearInterval(state.timer); state.timer = null; state.timerRunning = false;
+    state.secondsLeft = 25*60; renderTimer();
+    text("focusTimerButton","Start focus"); text("focusTimerStatus","Ready when you are");
+  }
+  function setFocusDuration(minutes,button) {
+    clearInterval(state.timer); state.timer = null; state.timerRunning = false;
+    state.secondsLeft = minutes*60; renderTimer();
+    text("focusTimerButton","Start focus"); text("focusTimerStatus",`${minutes}-minute focus session`);
+    $$(".timer-preset").forEach(b => b.classList.toggle("active",b === button));
+  }
 
-    const permittedFields = [
-        "full_name",
-        "class_level",
-        "stream",
-        "school",
-        "district",
-        "avatar_url"
+  // Account, authentication and profile
+  function showAuthMode(mode) {
+    const login = $("loginForm"), register = $("registerForm");
+    login?.classList.toggle("hidden",mode !== "login");
+    register?.classList.toggle("hidden",mode !== "register");
+    $("loginTab")?.classList.toggle("active",mode === "login");
+    $("registerTab")?.classList.toggle("active",mode === "register");
+  }
+  function updateAccountUI() {
+    const signedIn = !!state.user;
+    $("authForms")?.classList.toggle("hidden",signedIn);
+    $("signedInPanel")?.classList.toggle("hidden",!signedIn);
+    text("profileDisplayName",state.profile?.full_name || state.user?.user_metadata?.full_name || "Learner");
+    text("profileEmail",state.user?.email || "");
+    text("profileRoleLabel",state.profile?.role || "STUDENT");
+    text("profileAccountStatus",state.profile?.status || "GUEST");
+    text("profileCurriculumSummary",`${state.curriculum} · ${state.level}`);
+    text("headerAvatar",(state.profile?.full_name || "S").trim().charAt(0).toUpperCase());
+    text("profileAvatar",(state.profile?.full_name || "S").trim().charAt(0).toUpperCase());
+    $("adminDashboardAccess")?.classList.toggle("hidden",!isAdmin());
+    $("studentDashboardAccess")?.classList.toggle("hidden",!signedIn);
+    $("roleDashboardPanel")?.classList.toggle("hidden",!signedIn);
+  }
+  async function loginStudent(event) {
+    event?.preventDefault();
+    const email = value("loginEmail"), password = $("loginPassword")?.value || "";
+    if (!email || !password) { text("loginMessage","Enter your email and password."); return; }
+    const button = $("loginButton"); setBusy(button,true,"Signing in…");
+    try {
+      const {data,error} = await db().auth.signInWithPassword({email,password});
+      if (error) throw error;
+      await loadUserProfile(data.user);
+      text("loginMessage",""); toast("Welcome back to Study Verse!","success");
+      navigateTo("homeView");
+    } catch (error) {
+      console.error(error); text("loginMessage",error.message || "Unable to sign in.");
+    } finally { setBusy(button,false); }
+  }
+  async function registerStudent(event) {
+    event?.preventDefault();
+    const name = value("registerName"), email = value("registerEmail"), password = $("registerPassword")?.value || "";
+    if (!name || !email || password.length < 8 || !$("registerTerms")?.checked) {
+      text("registerMessage","Enter your name and email, use a password of at least 8 characters, and accept the terms."); return;
+    }
+    const button = $("registerButton"); setBusy(button,true,"Creating account…");
+    try {
+      const {data,error} = await db().auth.signUp({email,password,options:{data:{full_name:name,role:"STUDENT"}}});
+      if (error) throw error;
+      if (data.session && data.user) await loadUserProfile(data.user);
+      text("registerMessage",data.session ? "Account created. Check your account status." : "Registration received. Check your email to confirm your account.");
+      toast("Registration request submitted.","success");
+    } catch (error) {
+      console.error(error); text("registerMessage",error.message || "Registration failed.");
+    } finally { setBusy(button,false); }
+  }
+  async function loadUserProfile(user) {
+    state.user = user;
+    try {
+      const {data,error} = await db().from(STUDY_VERSE_CONFIG.tables.profiles).select("*").eq("id",user.id).maybeSingle();
+      if (error) throw error;
+      state.profile = data || {id:user.id,full_name:user.user_metadata?.full_name || "Learner",role:"STUDENT",status:"PENDING"};
+    } catch (error) {
+      console.warn("Profile record not available:",error);
+      state.profile = {id:user.id,full_name:user.user_metadata?.full_name || "Learner",role:"STUDENT",status:"PENDING"};
+    }
+    updateAccountUI();
+    dispatch("authenticated",{userId:user.id,role:state.profile.role});
+  }
+  async function restoreSession() {
+    try {
+      const {data,error} = await db().auth.getSession();
+      if (error) throw error;
+      if (data.session?.user) await loadUserProfile(data.session.user);
+    } catch (error) { console.warn("Session restore:",error); }
+  }
+  async function logoutStudent() {
+    try { const {error} = await db().auth.signOut(); if (error) throw error; }
+    catch (error) { console.error(error); }
+    state.user = null; state.profile = null; updateAccountUI(); toast("You have signed out."); navigateTo("homeView");
+  }
+  async function resetStudentPassword() {
+    const email = value("loginEmail");
+    if (!email) { text("loginMessage","Enter your account email first."); return; }
+    try {
+      const {error} = await db().auth.resetPasswordForEmail(email,{redirectTo:location.origin});
+      if (error) throw error;
+      text("loginMessage","If the account exists, password reset instructions will be sent.");
+    } catch (error) { text("loginMessage",error.message || "Password reset request failed."); }
+  }
+  async function saveProfilePreferences() {
+    state.language = $("profileLanguage")?.value || state.language;
+    state.country = $("profileCountry")?.value || state.country;
+    if (state.user && state.profile?.id) {
+      try {
+        const {error} = await db().from(STUDY_VERSE_CONFIG.tables.profiles).update({language:state.language,country:state.country}).eq("id",state.user.id);
+        if (error) throw error;
+      } catch (error) { console.warn(error); text("profilePreferencesMessage","Preferences kept on this device; cloud update was not available."); return; }
+    }
+    try { localStorage.setItem("sv-preferences",JSON.stringify({language:state.language,country:state.country})); } catch {}
+    text("profilePreferencesMessage","Preferences saved.");
+  }
+  function resetLearningPreferences() {
+    state.curriculum = "JKBOSE"; state.level = "Class 10"; state.language = "English"; state.country = "India";
+    if ($("homeCurriculum")) $("homeCurriculum").value = state.curriculum;
+    handleCurriculumChange(); if ($("homeLevel")) $("homeLevel").value = state.level;
+    if ($("profileLanguage")) $("profileLanguage").value = state.language;
+    if ($("profileCountry")) $("profileCountry").value = state.country;
+    saveHomeCurriculum(); saveProfilePreferences();
+  }
+
+  // Admin
+  async function showAdminPanel() {
+    if (!isAdmin()) { toast("Administrator access is restricted."); return; }
+    navigateTo("adminView");
+  }
+  async function refreshAdminDashboard() {
+    if (!isAdmin()) {
+      text("adminSystemStatus","Sign in with an approved administrator account to access these tools.");
+      return;
+    }
+    text("adminSystemStatus","Loading administration data…");
+    try {
+      const [profiles,resources] = await Promise.all([
+        db().from(STUDY_VERSE_CONFIG.tables.profiles).select("*").order("created_at",{ascending:false}).limit(300),
+        db().from(STUDY_VERSE_CONFIG.tables.resources).select("*").order("created_at",{ascending:false}).limit(100)
+      ]);
+      if (profiles.error) throw profiles.error;
+      if (resources.error) throw resources.error;
+      state.adminProfiles = profiles.data || [];
+      state.resources = resources.data || [];
+      text("adminTotalUsers",state.adminProfiles.length);
+      text("adminPendingUsers",state.adminProfiles.filter(p=>p.status==="PENDING").length);
+      text("adminApprovedUsers",state.adminProfiles.filter(p=>p.status==="APPROVED").length);
+      text("adminResourceCount",state.resources.length);
+      renderAdminStudents(); renderAdminResources();
+      text("adminSystemStatus","Connected to the Study Verse database.");
+    } catch (error) {
+      console.error(error); text("adminSystemStatus",`Could not load admin data: ${error.message}`);
+    }
+  }
+  function renderAdminStudents() {
+    const list = $("adminStudentsList");
+    if (!list) return;
+    const q = value("adminStudentSearch").toLowerCase();
+    const rows = state.adminProfiles.filter(p => [p.full_name,p.email,p.role,p.status].join(" ").toLowerCase().includes(q));
+    list.innerHTML = rows.length ? rows.map(p => `<article class="admin-user-row"><strong>${safe(p.full_name || "Learner")}</strong><span>${safe(p.email || "")}</span><span>${safe(p.role || "STUDENT")} · ${safe(p.status || "PENDING")}</span></article>`).join("") : `<p class="empty-state">No matching accounts found.</p>`;
+  }
+  function filterAdminStudents() { renderAdminStudents(); }
+  function renderAdminResources() {
+    const list = $("adminResourceList");
+    if (!list) return;
+    list.innerHTML = state.resources.length ? state.resources.map(r => `<article class="admin-resource-row"><strong>${safe(r.title || "Untitled resource")}</strong><span>${safe(r.status || "Status not set")}</span></article>`).join("") : `<p class="empty-state">No resources found.</p>`;
+  }
+  async function uploadStudyResource(event) {
+    event?.preventDefault();
+    if (!isAdmin()) { text("resourceUploadMessage","Administrator access required."); return; }
+    const file = $("resourceFile")?.files?.[0];
+    const title = value("resourceTitle");
+    if (!file || !title) { text("resourceUploadMessage","Add a title and choose a file."); return; }
+    if (file.size > STUDY_VERSE_CONFIG.maxUploadBytes) { text("resourceUploadMessage","File size must be 20 MB or less."); return; }
+    const button = $("resourceUploadForm")?.querySelector('[type="submit"]');
+    setBusy(button,true,"Uploading…");
+    try {
+      const ext = file.name.split(".").pop().replace(/[^a-zA-Z0-9]/g,"").toLowerCase();
+      const path = `${state.user.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      let uploaded = null, bucketUsed = null, lastError = null;
+      for (const bucket of STUDY_VERSE_CONFIG.storageBuckets) {
+        const result = await db().storage.from(bucket).upload(path,file,{upsert:false});
+        if (!result.error) { uploaded = result.data; bucketUsed = bucket; break; }
+        lastError = result.error;
+      }
+      if (!uploaded) throw lastError || new Error("Storage upload failed.");
+      const {data:publicData} = db().storage.from(bucketUsed).getPublicUrl(uploaded.path);
+      const row = {
+        title, description:value("resourceDescription"),
+        subject:value("resourceSubject"), class_level:value("resourceLevel"),
+        resource_type:value("resourceType"), file_url:publicData.publicUrl,
+        status:$("resourceVerified")?.checked ? "APPROVED" : "PENDING",
+        uploaded_by:state.user.id
+      };
+      const {error} = await db().from(STUDY_VERSE_CONFIG.tables.resources).insert(row);
+      if (error) throw error;
+      text("resourceUploadMessage","Resource uploaded and submitted.");
+      $("resourceUploadForm").reset(); await refreshAdminDashboard();
+    } catch (error) {
+      console.error(error); text("resourceUploadMessage",`Upload failed: ${error.message}`);
+    } finally { setBusy(button,false); }
+  }
+
+  // Founder profile
+  async function loadFounderProfile() {
+    try {
+      const {data,error} = await db().from(STUDY_VERSE_CONFIG.tables.founder).select("*").limit(1).maybeSingle();
+      if (error) throw error;
+      if (!data) return;
+      text("founderPublicName",data.name || STUDY_VERSE_CONFIG.founder);
+      text("founderPublicDesignation",data.designation || "Founder, Study Verse");
+      text("founderPublicBiography",data.biography || "");
+      text("founderPublicVision",data.vision || "");
+      text("founderPublicMission",data.mission || "");
+      const image = $("founderPublicImage");
+      if (image && data.image_url) image.src = data.image_url;
+      const links = $("founderPublicSocialLinks");
+      if (links) links.innerHTML = [data.website,data.instagram].filter(Boolean).map(url => `<a href="${safe(url)}" target="_blank" rel="noopener noreferrer">${safe(url)}</a>`).join(" ");
+      if (isAdmin()) {
+        const fields = {founderNameInput:data.name,founderDesignationInput:data.designation,founderBiographyInput:data.biography,founderVisionInput:data.vision,founderMissionInput:data.mission,founderWebsiteInput:data.website,founderInstagramInput:data.instagram};
+        Object.entries(fields).forEach(([id,v]) => { if ($(id)) $(id).value = v || ""; });
+        if ($("founderPublishToggle")) $("founderPublishToggle").checked = data.is_published !== false;
+      }
+    } catch (error) { console.warn("Founder profile:",error); }
+  }
+  async function saveFounderProfile(event) {
+    event?.preventDefault();
+    if (!isAdmin()) { text("founderSaveMessage","Administrator access required."); return; }
+    const row = {
+      name:value("founderNameInput") || STUDY_VERSE_CONFIG.founder,
+      designation:value("founderDesignationInput"),
+      biography:value("founderBiographyInput"),
+      vision:value("founderVisionInput"),
+      mission:value("founderMissionInput"),
+      website:value("founderWebsiteInput"),
+      instagram:value("founderInstagramInput"),
+      is_published:$("founderPublishToggle")?.checked ?? true,
+      updated_at:new Date().toISOString()
+    };
+    try {
+      const {data,error} = await db().from(STUDY_VERSE_CONFIG.tables.founder).select("id").limit(1).maybeSingle();
+      if (error) throw error;
+      const result = data?.id
+        ? await db().from(STUDY_VERSE_CONFIG.tables.founder).update(row).eq("id",data.id)
+        : await db().from(STUDY_VERSE_CONFIG.tables.founder).insert(row);
+      if (result.error) throw result.error;
+      text("founderSaveMessage","Founder profile saved."); toast("Founder profile updated.","success");
+      loadFounderProfile();
+    } catch (error) { console.error(error); text("founderSaveMessage",`Could not save: ${error.message}`); }
+  }
+
+  // Global search and home activity
+  function submitGlobalSearch(event) {
+    event?.preventDefault();
+    const query = value("globalSearchInput").toLowerCase();
+    if (!query) return;
+    closeDialog("globalSearchDialog");
+    const found = subjects.find(s => s[0].toLowerCase().includes(query) || s[1].toLowerCase().includes(query));
+    if (found) { openSubject(found[0]); return; }
+    $("librarySearchInput") && ($("librarySearchInput").value = query);
+    navigateTo("libraryView"); renderLibrary();
+  }
+  function renderHomeActivity() {
+    const list = $("homeActivityList"), empty = $("homeActivityEmpty");
+    if (!list) return;
+    const items = [
+      ...state.notes.slice(0,2).map(n=>({title:n.title,detail:"Study note"})),
+      ...state.goals.slice(0,2).map(g=>({title:g.title,detail:g.done?"Goal completed":"Learning goal"}))
     ];
+    if (empty) empty.classList.toggle("hidden",items.length>0);
+    list.innerHTML = items.map(i=>`<div class="activity-item"><strong>${safe(i.title)}</strong><span>${safe(i.detail)}</span></div>`).join("");
+  }
+  function saveResourceBookmark(resourceId) {
+    if (!requireLogin()) return;
+    if (!state.saved.includes(resourceId)) state.saved.push(resourceId);
+    saveLocal("sv-saved",state.saved); renderSavedResources();
+  }
+  function renderSavedResources() {
+    const list = $("savedResourcesList");
+    if (!list) return;
+    const rows = state.resources.filter(r=>state.saved.includes(String(r.id)));
+    list.innerHTML = rows.length ? rows.map(r=>`<p>${safe(r.title)}</p>`).join("") : `<p class="muted">Your bookmarked resources will appear here.</p>`;
+  }
 
-    const safeUpdates = {};
+  // Expose functions used by inline handlers in index.html.
+  Object.assign(window,{
+    navigateTo,toggleMobileMenu,closeMobileMenu,toggleTheme,setTheme,
+    openGlobalSearch,openNotifications,closeDialog,
+    handleCurriculumChange,saveHomeCurriculum,
+    searchExplore,filterExplore,openSubject,
+    filterLibraryResources,clearLibraryFilters,
+    startPracticeSession,endPracticeSession,submitOrNextPractice,
+    setAIMode,useAIPrompt,sendAIMessage,
+    savePersonalNote,addLearningGoal,toggleFocusTimer,resetFocusTimer,setFocusDuration,
+    showAuthMode,loginStudent,registerStudent,resetStudentPassword,logoutStudent,
+    saveProfilePreferences,resetLearningPreferences,
+    showAdminPanel,refreshAdminDashboard,uploadStudyResource,filterAdminStudents,
+    saveFounderProfile,submitGlobalSearch
+  });
 
-    permittedFields.forEach(field => {
-        if (
-            updates &&
-            Object.prototype.hasOwnProperty.call(updates, field)
-        ) {
-            safeUpdates[field] = updates[field];
-        }
-    });
+  // Delegated interactions keep dynamically generated controls working.
+  document.addEventListener("click",event=>{
+    const answer = event.target.closest("[data-answer]");
+    if (answer) choosePracticeAnswer(Number(answer.dataset.answer));
+    const subject = event.target.closest("[data-subject]");
+    if (subject) openSubject(subject.dataset.subject);
+    const delNote = event.target.closest("[data-delete-note]");
+    if (delNote) { state.notes.splice(Number(delNote.dataset.deleteNote),1); saveLocal("sv-notes",state.notes); renderNotes(); }
+    const delGoal = event.target.closest("[data-delete-goal]");
+    if (delGoal) { state.goals.splice(Number(delGoal.dataset.deleteGoal),1); saveLocal("sv-goals",state.goals); renderGoals(); }
+  });
+  document.addEventListener("change",event=>{
+    const goal = event.target.closest("[data-goal]");
+    if (goal) updateGoal(Number(goal.dataset.goal),goal.checked);
+  });
 
-    if (!Object.keys(safeUpdates).length) {
-        uiAction("No profile changes were provided.");
-        return;
-    }
-
+  async function init() {
     try {
-        const db = getSupabase();
-
-        const { data, error } = await db
-            .from(STUDY_VERSE.tables.profiles)
-            .update(safeUpdates)
-            .eq("id", currentUser.id)
-            .select()
-            .single();
-
-        if (error) throw error;
-
-        currentProfile = data;
-        updateUserInterface();
-
-        uiAction("Profile updated successfully.");
-
-    } catch (error) {
-        showError(error, "Profile update failed.");
-    }
-}
-
-/* ------------------------------------------------------------
-   23. GLOBAL RESOURCE SEARCH
------------------------------------------------------------- */
-
-async function searchStudyVerse(query) {
-    const searchTerm = String(query || "").trim();
-
-    if (searchTerm.length < 2) {
-        uiAction("Enter at least two characters to search.");
-        return [];
-    }
-
-    try {
-        const db = getSupabase();
-
-        // Search characters that could alter PostgREST filter syntax
-        // are removed before constructing the OR expression.
-        const safeTerm = searchTerm
-            .replace(/[,%()_*]/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
-
-        if (safeTerm.length < 2) return [];
-
-        const { data, error } = await db
-            .from(STUDY_VERSE.tables.resources)
-            .select("id,title,description,subject,category,class_level,resource_type")
-            .eq("is_published", true)
-            .or(
-                `title.ilike.%${safeTerm}%,description.ilike.%${safeTerm}%,subject.ilike.%${safeTerm}%`
-            )
-            .limit(30);
-
-        if (error) throw error;
-
-        return data || [];
-
-    } catch (error) {
-        showError(error, "Search is temporarily unavailable.");
-        return [];
-    }
-}
-
-/* ------------------------------------------------------------
-   24. FOUNDER PROFILE — PUBLIC DISPLAY
------------------------------------------------------------- */
-
-function getFounderImageUrl(imagePath) {
-    if (!imagePath) return "";
-
-    const { data } = getSupabase()
-        .storage
-        .from(STUDY_VERSE.founderBucket)
-        .getPublicUrl(imagePath);
-
-    return data?.publicUrl || "";
-}
-
-function setFounderImage(imagePath) {
-    const imageUrl = getFounderImageUrl(imagePath);
-
-    const imageIds = [
-        "founderPublicImage",
-        "founderEditorPreview"
-    ];
-
-    imageIds.forEach(id => {
-        const image = getElement(id);
-        if (!image) return;
-
-        if (imageUrl) {
-            image.src = imageUrl;
-            image.classList.remove("hidden");
-        } else {
-            image.removeAttribute("src");
-            image.classList.add("hidden");
-        }
-    });
-}
-
-async function loadPublicFounderProfile() {
-    try {
-        const db = getSupabase();
-
-        const { data, error } = await db
-            .from(STUDY_VERSE.tables.founder)
-            .select("*")
-            .eq("id", 1)
-            .eq("is_published", true)
-            .maybeSingle();
-
-        if (error) throw error;
-
-        if (!data) {
-            setText("founderPublicName", STUDY_VERSE.founder);
-            setText("founderPublicDesignation", "Founder & Creator");
-            setText(
-                "founderPublicBiography",
-                "The Founder profile will be available here soon."
-            );
-
-            setFounderImage(null);
-            return null;
-        }
-
-        founderProfile = data;
-
-        setText("founderPublicName", data.founder_name);
-        setText("founderPublicDesignation", data.designation);
-        setText("founderPublicBiography", data.biography);
-        setText("founderPublicVision", data.vision);
-        setText("founderPublicMission", data.mission);
-
-        setFounderImage(data.image_path);
-
-        renderFounderSocialLinks(data.social_links || {});
-
-        return data;
-
-    } catch (error) {
-        console.error("[Study Verse] Founder profile:", error);
-        uiAction("Unable to load the Founder profile.");
-        return null;
-    }
-}
-
-function renderFounderSocialLinks(links) {
-    const container = getElement("founderPublicSocialLinks");
-    if (!container) return;
-
-    const allowed = [
-        ["website", "Website"],
-        ["instagram", "Instagram"],
-        ["linkedin", "LinkedIn"],
-        ["youtube", "YouTube"],
-        ["x", "X"]
-    ];
-
-    const validLinks = allowed
-        .map(([key, label]) => {
-            const url = validateSocialUrl(links[key]);
-            return url ? { label, url } : null;
-        })
-        .filter(Boolean);
-
-    container.innerHTML = validLinks.map(item => `
-        <a
-            href="${escapeHTML(item.url)}"
-            target="_blank"
-            rel="noopener noreferrer"
-        >${escapeHTML(item.label)}</a>
-    `).join("");
-}
-
-/* ------------------------------------------------------------
-   25. FOUNDER PROFILE — ADMIN EDITOR
------------------------------------------------------------- */
-
-async function loadFounderEditor() {
-    if (!requireAdmin()) return null;
-
-    try {
-        const db = getSupabase();
-
-        const { data, error } = await db
-            .from(STUDY_VERSE.tables.founder)
-            .select("*")
-            .eq("id", 1)
-            .maybeSingle();
-
-        if (error) throw error;
-
-        founderProfile = data || null;
-
-        if (!data) {
-            uiAction("Founder profile record was not found.", "error");
-            return null;
-        }
-
-        setValueIfPresent("founderNameInput", data.founder_name);
-        setValueIfPresent("founderDesignationInput", data.designation);
-        setValueIfPresent("founderBiographyInput", data.biography);
-        setValueIfPresent("founderVisionInput", data.vision);
-        setValueIfPresent("founderMissionInput", data.mission);
-
-        const links = data.social_links || {};
-
-        setValueIfPresent("founderWebsiteInput", links.website || "");
-        setValueIfPresent("founderInstagramInput", links.instagram || "");
-        setValueIfPresent("founderLinkedInInput", links.linkedin || "");
-        setValueIfPresent("founderYouTubeInput", links.youtube || "");
-        setValueIfPresent("founderXInput", links.x || "");
-
-        const publishControl = getElement("founderPublishToggle");
-
-        if (publishControl) {
-            publishControl.checked = Boolean(data.is_published);
-        }
-
-        setText(
-            "founderPublishStatus",
-            data.is_published ? "Published" : "Not published"
-        );
-
-        setFounderImage(data.image_path);
-
-        const preview = getElement("founderEditorPreview");
-
-        if (preview && data.image_path) {
-            preview.src = getFounderImageUrl(data.image_path);
-            preview.classList.remove("hidden");
-        }
-
-        return data;
-
-    } catch (error) {
-        showError(error, "Unable to load Founder editor.");
-        return null;
-    }
-}
-
-function setValueIfPresent(id, value) {
-    const element = getElement(id);
-    if (element) element.value = value ?? "";
-}
-
-function validateSocialUrl(value) {
-    const raw = String(value || "").trim();
-
-    if (!raw) return "";
-
-    try {
-        const url = new URL(
-            /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
-        );
-
-        if (!["http:", "https:"].includes(url.protocol)) {
-            return "";
-        }
-
-        return url.href;
-
-    } catch {
-        return "";
-    }
-}
-
-function getFounderEditorData() {
-    const socialLinks = {
-        website: validateSocialUrl(getValue("founderWebsiteInput")),
-        instagram: validateSocialUrl(getValue("founderInstagramInput")),
-        linkedin: validateSocialUrl(getValue("founderLinkedInInput")),
-        youtube: validateSocialUrl(getValue("founderYouTubeInput")),
-        x: validateSocialUrl(getValue("founderXInput"))
-    };
-
-    return {
-        founder_name: getValue("founderNameInput") || STUDY_VERSE.founder,
-        designation: getValue("founderDesignationInput") || "Founder & Creator",
-        biography: getValue("founderBiographyInput"),
-        vision: getValue("founderVisionInput"),
-        mission: getValue("founderMissionInput"),
-        social_links: socialLinks
-    };
-}
-
-async function saveFounderProfile() {
-    if (!requireAdmin()) return;
-
-    const button = getElement("founderSaveButton");
-    setLoading(button, true, "Saving profile...");
-
-    let newlyUploadedPath = null;
-
-    try {
-        const db = getSupabase();
-        const profileData = getFounderEditorData();
-
-        if (!profileData.founder_name) {
-            throw new Error("Founder name is required.");
-        }
-
-        const oldImagePath = founderProfile?.image_path || null;
-        let imagePath = oldImagePath;
-
-        // Upload a newly cropped image before updating the profile.
-        if (founderImageBlob) {
-            newlyUploadedPath =
-                `founder/portrait-${Date.now()}-${crypto.randomUUID()}.webp`;
-
-            const { error: uploadError } = await db.storage
-                .from(STUDY_VERSE.founderBucket)
-                .upload(newlyUploadedPath, founderImageBlob, {
-                    contentType: "image/webp",
-                    cacheControl: "3600",
-                    upsert: false
-                });
-
-            if (uploadError) throw uploadError;
-
-            imagePath = newlyUploadedPath;
-        }
-
-        const publishControl = getElement("founderPublishToggle");
-
-        const updateData = {
-            ...profileData,
-            image_path: imagePath,
-            is_published: Boolean(publishControl?.checked),
-            updated_at: new Date().toISOString()
-        };
-
-        const { data: updated, error: updateError } = await db
-            .from(STUDY_VERSE.tables.founder)
-            .update(updateData)
-            .eq("id", 1)
-            .select()
-            .maybeSingle();
-
-        if (updateError) throw updateError;
-
-        let savedProfile = updated;
-
-        // Fallback only if the initial row does not exist.
-        if (!savedProfile) {
-            const { data: inserted, error: insertError } = await db
-                .from(STUDY_VERSE.tables.founder)
-                .insert({
-                    id: 1,
-                    ...updateData
-                })
-                .select()
-                .single();
-
-            if (insertError) throw insertError;
-
-            savedProfile = inserted;
-        }
-
-        founderProfile = savedProfile;
-        founderImageBlob = null;
-        founderImageFile = null;
-
-        setText(
-            "founderPublishStatus",
-            savedProfile.is_published ? "Published" : "Not published"
-        );
-
-        // Remove the old image only after the database update succeeds.
-        if (
-            oldImagePath &&
-            newlyUploadedPath &&
-            oldImagePath !== newlyUploadedPath
-        ) {
-            const { error: removeError } = await db.storage
-                .from(STUDY_VERSE.founderBucket)
-                .remove([oldImagePath]);
-
-            if (removeError) {
-                console.warn(
-                    "[Study Verse] Old Founder image could not be removed:",
-                    removeError
-                );
-            }
-        }
-
-        uiAction("Founder profile saved successfully.", "success");
-
-        await loadPublicFounderProfile();
-        await loadFounderEditor();
-
-    } catch (error) {
-        // Keep the previous profile and old image intact if saving fails.
-        if (newlyUploadedPath) {
-            await getSupabase()
-                .storage
-                .from(STUDY_VERSE.founderBucket)
-                .remove([newlyUploadedPath]);
-        }
-
-        showError(error, "Unable to save Founder profile.");
-
-    } finally {
-        setLoading(button, false);
-    }
-}
-
-/* ------------------------------------------------------------
-   26. FOUNDER IMAGE — FILE SELECTION
------------------------------------------------------------- */
-
-function initializeFounderEditor() {
-    if (founderEditorInitialized) return;
-    founderEditorInitialized = true;
-
-    const input = getElement("founderImageInput");
-
-    if (input) {
-        input.addEventListener("change", handleFounderImageSelection);
-    }
-
-    const zoom = getElement("founderZoom");
-    const positionX = getElement("founderPositionX");
-    const positionY = getElement("founderPositionY");
-
-    if (zoom) {
-        zoom.addEventListener("input", () => {
-            founderCropState.zoom = Number(zoom.value) || 1;
-            drawFounderCropPreview();
-        });
-    }
-
-    if (positionX) {
-        positionX.addEventListener("input", () => {
-            founderCropState.x = Number(positionX.value) / 100;
-            drawFounderCropPreview();
-        });
-    }
-
-    if (positionY) {
-        positionY.addEventListener("input", () => {
-            founderCropState.y = Number(positionY.value) / 100;
-            drawFounderCropPreview();
-        });
-    }
-
-    const saveButton = getElement("founderSaveButton");
-
-    if (saveButton) {
-    saveButton.addEventListener("click", saveFounderProfileWithImage);
-    }
-
-    const resetButton = getElement("founderCropReset");
-
-    if (resetButton) {
-        resetButton.addEventListener("click", resetFounderCrop);
-    }
-}
-
-function handleFounderImageSelection(event) {
-    if (!requireAdmin()) return;
-
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        uiAction("Choose a JPG, PNG or WebP image.");
-        event.target.value = "";
-        return;
-    }
-
-    if (file.size > STUDY_VERSE.founderImageMaxSize) {
-        uiAction("Founder image must be 5 MB or smaller.");
-        event.target.value = "";
-        return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-        const image = new Image();
-
-        image.onload = () => {
-            founderImageObject = image;
-            founderImageFile = file;
-            founderImageBlob = null;
-
-            founderCropState = {
-                zoom: 1,
-                x: 0.5,
-                y: 0.5
-            };
-
-            setValueIfPresent("founderZoom", "1");
-            setValueIfPresent("founderPositionX", "50");
-            setValueIfPresent("founderPositionY", "50");
-
-            const cropPanel = getElement("founderCropPanel");
-
-            if (cropPanel) {
-                cropPanel.classList.remove("hidden");
-            }
-
-            drawFounderCropPreview();
-            uiAction("Image loaded. Adjust the crop and save your profile.");
-        };
-
-        image.onerror = () => {
-            uiAction("This image could not be opened.", "error");
-        };
-
-        image.src = reader.result;
-    };
-
-    reader.onerror = () => {
-        uiAction("Unable to read the selected image.", "error");
-    };
-
-    reader.readAsDataURL(file);
-}
-
-/* ------------------------------------------------------------
-   27. FOUNDER IMAGE — CIRCULAR CROP PREVIEW
------------------------------------------------------------- */
-
-function drawFounderCropPreview() {
-    const canvas = getElement("founderCropCanvas");
-
-    if (!canvas || !founderImageObject) return;
-
-    const context = canvas.getContext("2d");
-    const size = 500;
-
-    canvas.width = size;
-    canvas.height = size;
-
-    context.clearRect(0, 0, size, size);
-
-    const image = founderImageObject;
-
-    const baseScale = Math.max(
-        size / image.width,
-        size / image.height
-    );
-
-    const scale = baseScale * founderCropState.zoom;
-
-    const width = image.width * scale;
-    const height = image.height * scale;
-
-    const maxOffsetX = Math.max(0, width - size);
-    const maxOffsetY = Math.max(0, height - size);
-
-    const x = -maxOffsetX * founderCropState.x;
-    const y = -maxOffsetY * founderCropState.y;
-
-    context.save();
-
-    context.beginPath();
-    context.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-    context.clip();
-
-    context.drawImage(image, x, y, width, height);
-
-    context.restore();
-}
-
-function resetFounderCrop() {
-    founderCropState = {
-        zoom: 1,
-        x: 0.5,
-        y: 0.5
-    };
-
-    setValueIfPresent("founderZoom", "1");
-    setValueIfPresent("founderPositionX", "50");
-    setValueIfPresent("founderPositionY", "50");
-
-    drawFounderCropPreview();
-}
-
-async function prepareFounderCroppedImage() {
-    const canvas = getElement("founderCropCanvas");
-
-    if (!canvas || !founderImageObject) {
-        return null;
-    }
-
-    return new Promise((resolve, reject) => {
-        canvas.toBlob(blob => {
-            if (!blob) {
-                reject(new Error("Unable to prepare the cropped image."));
-                return;
-            }
-
-            founderImageBlob = blob;
-            resolve(blob);
-        }, "image/webp", 0.92);
-    });
-}
-
-/* ------------------------------------------------------------
-   28. FOUNDER IMAGE — PREPARE BEFORE SAVE
------------------------------------------------------------- */
-
-async function saveFounderProfileWithImage() {
-    if (founderImageObject && !founderImageBlob) {
-        try {
-            await prepareFounderCroppedImage();
-        } catch (error) {
-            showError(error, "Unable to prepare Founder image.");
-            return;
-        }
-    }
-
-    await saveFounderProfile();
-}
-
-/* ------------------------------------------------------------
-   29. EVENT SYSTEM
------------------------------------------------------------- */
-
-function emitStudyVerseEvent(eventName, detail = {}) {
-    window.dispatchEvent(
-        new CustomEvent(`studyverse:${eventName}`, {
-            detail
-        })
-    );
-}
-
-/* ------------------------------------------------------------
-   30. FEATURE AVAILABILITY
------------------------------------------------------------- */
-
-function showFeatureUnavailable(featureName) {
-    uiAction(
-        `${featureName} is not connected yet. It will be enabled after implementation.`,
-        "info"
-    );
-}
-
-/* ------------------------------------------------------------
-   31. CONNECTION STATUS
------------------------------------------------------------- */
-
-function monitorConnection() {
-    function updateStatus() {
-        const online = navigator.onLine;
-
-        setText(
-            "connectionStatus",
-            online ? "Online" : "Offline"
-        );
-
-        emitStudyVerseEvent("connection", { online });
-    }
-
-    window.addEventListener("online", updateStatus);
-    window.addEventListener("offline", updateStatus);
-
-    updateStatus();
-}
-
-/* ------------------------------------------------------------
-   32. SEARCH AND FILTER EVENT LISTENERS
------------------------------------------------------------- */
-
-function initializeSearchControls() {
-    const adminSearch = getElement("adminStudentSearch");
-    const adminFilter = getElement("adminStatusFilter");
-
-    const librarySearch = getElement("librarySearch");
-    const libraryCategory = getElement("libraryCategory");
-
-    if (adminSearch) {
-        adminSearch.addEventListener("input", filterAdminStudents);
-    }
-
-    if (adminFilter) {
-        adminFilter.addEventListener("change", filterAdminStudents);
-    }
-
-    if (librarySearch) {
-        librarySearch.addEventListener("input", filterLibraryResources);
-    }
-
-    if (libraryCategory) {
-        libraryCategory.addEventListener("change", filterLibraryResources);
-    }
-}
-
-/* ------------------------------------------------------------
-   33. APPLICATION INITIALISATION
------------------------------------------------------------- */
-
-async function startApp() {
-    if (appInitialized) return;
-
-    appInitialized = true;
-
-    setDynamicGreeting();
-    monitorConnection();
-    initializeSearchControls();
-    initializeFounderEditor();
-
-    let sessionRestored = false;
-
-    // Wait for session restoration before deciding which screen to show.
-    try {
-        sessionRestored = await restoreSession();
-    } catch (error) {
-        console.error("[Study Verse] Startup session check:", error);
-    }
-
-    setTimeout(() => {
-        const splash = getElement("splashScreen");
-
-        if (splash) {
-            splash.style.animation = "fadeOut 0.5s forwards";
-        }
-
-        setTimeout(() => {
-            if (splash) {
-                splash.classList.remove("active-flex");
-                splash.classList.add("hidden");
-            }
-
-            const onboarding = getElement("onboardingScreen");
-            const appRoot = getElement("app-root");
-            const bottomNav = getElement("bottomNav");
-
-            if (sessionRestored) {
-                if (onboarding) onboarding.classList.add("hidden");
-                if (appRoot) appRoot.classList.remove("hidden");
-                if (bottomNav) bottomNav.classList.remove("hidden");
-
-                navigateTo("homeView");
-            } else {
-                if (onboarding) {
-                    onboarding.classList.remove("hidden");
-                    onboarding.classList.add("active-flex");
-                }
-            }
-
-            // Load the public Founder profile when the interface is ready.
-            loadPublicFounderProfile();
-
-        }, 500);
-
-    }, 1200);
-}
-
-/* ------------------------------------------------------------
-   34. PUBLIC APPLICATION API
------------------------------------------------------------- */
-
-window.StudyVerse = Object.freeze({
-    version: STUDY_VERSE.version,
-
-    getUser: () => currentUser,
-    getProfile: () => currentProfile,
-    getFounderProfile: () => founderProfile,
-
-    isAdmin,
-    isEducator,
-    isApprovedUser,
-
-    refreshAdminDashboard,
-    loadAdminDashboard,
-
-    loadLibraryResources,
-    searchStudyVerse,
-
-    updateStudentProfile,
-
-    loadPublicFounderProfile,
-    loadFounderEditor,
-    saveFounderProfile: saveFounderProfileWithImage,
-
-    emit: emitStudyVerseEvent
-});
-
-/* ------------------------------------------------------------
-   35. GLOBAL FUNCTIONS
-   Required for existing and upcoming HTML handlers.
------------------------------------------------------------- */
-
-Object.assign(window, {
-    registerStudent,
-    loginStudent,
-    logoutStudent,
-    restoreSession,
-    resetStudentPassword,
-
-    navigateTo,
-    goBack,
-    toggleAuthMode,
-    completeOnboarding,
-
-    setDynamicGreeting,
-
-    loadAdminDashboard,
-    refreshAdminDashboard,
-    updateStudentStatus,
-    filterAdminStudents,
-
-    loadLibraryResources,
-    filterLibraryResources,
-    downloadStudyResource,
-    uploadStudyResource,
-    setResourcePublished,
-
-    updateStudentProfile,
-    searchStudyVerse,
-    showFeatureUnavailable,
-
-    loadPublicFounderProfile,
-    loadFounderEditor,
-    saveFounderProfile: saveFounderProfileWithImage,
-    initializeFounderEditor,
-    resetFounderCrop
-});
-
-/* ------------------------------------------------------------
-   36. START APPLICATION
------------------------------------------------------------- */
-
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", startApp);
-} else {
-    startApp();
-}
-
-/* ============================================================
-
-   END OF STUDY VERSE CORE ENGINE
-
-   ============================================================ */
-
-     
-/* ============================================================
-   STUDY VERSE — PERSONAL LEARNING WORKSPACE
-   Notes • Goals • Flashcards • Practice Questions
-   Storage: Local device + Supabase cloud sync
-============================================================ */
-
-(function () {
-    "use strict";
-
-    const STORAGE_KEY = "studyverse.personal-workspace.v1";
-    const MIGRATED_KEY = "studyverse.workspace.cloud-migrated.v1";
-
-    const TABLES = {
-        notes: "sv_learning_notes",
-        goals: "sv_learning_goals",
-        flashcards: "sv_flashcards",
-        questions: "sv_practice_questions"
-    };
-
-    const emptyData = {
-        notes: [],
-        goals: [],
-        flashcards: [],
-        questions: []
-    };
-
-    function loadData() {
-        try {
-            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-
-            if (!saved || typeof saved !== "object") {
-                return {
-                    notes: [],
-                    goals: [],
-                    flashcards: [],
-                    questions: []
-                };
-            }
-
-            return {
-                notes: Array.isArray(saved.notes) ? saved.notes : [],
-                goals: Array.isArray(saved.goals) ? saved.goals : [],
-                flashcards: Array.isArray(saved.flashcards) ? saved.flashcards : [],
-                questions: Array.isArray(saved.questions) ? saved.questions : []
-            };
-        } catch (error) {
-            console.error("[Study Verse] Workspace storage:", error);
-            return {
-                notes: [],
-                goals: [],
-                flashcards: [],
-                questions: []
-            };
-        }
-    }
-
-    let data = loadData();
-    let cloudUserId = null;
-    let activationPromise = null;
-
-    function saveData() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            return true;
-        } catch (error) {
-            console.error("[Study Verse] Workspace save:", error);
-            alert("Unable to save. Your device storage may be full.");
-            return false;
-        }
-    }
-
-    function safe(value) {
-        return typeof escapeHTML === "function"
-            ? escapeHTML(value)
-            : String(value ?? "").replace(/[&<>"']/g, char => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;"
-            })[char]);
-    }
-
-    function newId() {
-        if (window.crypto && typeof window.crypto.randomUUID === "function") {
-            return window.crypto.randomUUID();
-        }
-
-        return deterministicUUID(
-            Date.now() + ":" + Math.random() + ":" + Math.random()
-        );
-    }
-
-    function deterministicUUID(value) {
-        const text = String(value);
-        const hashes = [
-            2166136261,
-            2246822519,
-            3266489917,
-            668265263
-        ];
-
-        for (let i = 0; i < text.length; i++) {
-            for (let j = 0; j < hashes.length; j++) {
-                hashes[j] = Math.imul(
-                    hashes[j] ^ (text.charCodeAt(i) + j),
-                    16777619 + (j * 2)
-                ) >>> 0;
-            }
-        }
-
-        let hex = hashes.map(value =>
-            value.toString(16).padStart(8, "0")
-        ).join("");
-
-        hex = hex.slice(0, 12) + "5" + hex.slice(13);
-        hex = hex.slice(0, 16) +
-            ((parseInt(hex[16], 16) & 3) | 8).toString(16) +
-            hex.slice(17);
-
-        return [
-            hex.slice(0, 8),
-            hex.slice(8, 12),
-            hex.slice(12, 16),
-            hex.slice(16, 20),
-            hex.slice(20, 32)
-        ].join("-");
-    }
-
-    function setStorageStatus(message) {
-        const status = document.getElementById("svWorkspaceStorageStatus");
-        if (status) status.textContent = message;
-    }
-
-    function getCloudRows(userId) {
-        return {
-            notes: data.notes.map(item => ({
-                id: item.id,
-                user_id: userId,
-                title: item.title,
-                content: item.body || ""
-            })),
-
-            goals: data.goals.map(item => ({
-                id: item.id,
-                user_id: userId,
-                title: item.title,
-                target_date: item.date || null,
-                status: item.completed ? "COMPLETED" : "ACTIVE"
-            })),
-
-            flashcards: data.flashcards.map(item => ({
-                id: item.id,
-                user_id: userId,
-                deck_name: "My Flashcards",
-                question: item.front,
-                answer: item.back
-            })),
-
-            questions: data.questions.map(item => ({
-                id: item.id,
-                user_id: userId,
-                question: item.question,
-                options: item.options,
-                correct_answer: String(item.correct)
-            }))
-        };
-    }
-
-    async function migrateLegacyData(userId, db) {
-        if (localStorage.getItem(MIGRATED_KEY) === "true") {
-            return;
-        }
-
-        const hasData = Object.values(data).some(items => items.length > 0);
-
-        if (!hasData) {
-            localStorage.setItem(MIGRATED_KEY, "true");
-            return;
-        }
-
-        const idTypes = ["notes", "goals", "flashcards", "questions"];
-
-        idTypes.forEach(type => {
-            data[type].forEach(item => {
-                item.id = deterministicUUID(
-                    userId + ":" + type + ":" + item.id
-                );
-            });
-        });
-
-        if (!saveData()) {
-            throw new Error("Could not preserve your existing workspace data.");
-        }
-
-        const rows = getCloudRows(userId);
-
-        for (const type of idTypes) {
-            if (rows[type].length === 0) continue;
-
-            const { error } = await db
-                .from(TABLES[type])
-                .upsert(rows[type], { onConflict: "id" });
-
-            if (error) throw error;
-        }
-
-        localStorage.setItem(MIGRATED_KEY, "true");
-    }
-
-    async function loadCloudData(userId, db) {
-        const types = Object.keys(TABLES);
-
-        const results = await Promise.all(
-            types.map(type =>
-                db.from(TABLES[type])
-                    .select("*")
-                    .eq("user_id", userId)
-                    .order("created_at", { ascending: false })
-            )
-        );
-
-        results.forEach((result, index) => {
-            if (result.error) throw result.error;
-        });
-
-        const rows = {};
-
-        types.forEach((type, index) => {
-            rows[type] = results[index].data || [];
-        });
-
-        data.notes = rows.notes.map(item => ({
-            id: item.id,
-            title: item.title,
-            body: item.content || "",
-            createdAt: item.created_at
-        }));
-
-        data.goals = rows.goals.map(item => ({
-            id: item.id,
-            title: item.title,
-            date: item.target_date || "",
-            completed: item.status === "COMPLETED"
-        }));
-
-        data.flashcards = rows.flashcards.map(item => ({
-            id: item.id,
-            front: item.question,
-            back: item.answer,
-            revealed: false
-        }));
-
-        data.questions = rows.questions.map(item => ({
-            id: item.id,
-            question: item.question,
-            options: Array.isArray(item.options) ? item.options : [],
-            correct: Number(item.correct_answer)
-        }));
-
-        saveData();
-        renderAll();
-    }
-
-    async function activateCloudWorkspace() {
-        if (
-            !currentUser ||
-            typeof isApprovedUser !== "function" ||
-            !isApprovedUser()
-        ) {
-            return;
-        }
-
-        const userId = currentUser.id;
-
-        if (cloudUserId === userId) return;
-        if (activationPromise) return activationPromise;
-
-        activationPromise = (async () => {
-            try {
-                setStorageStatus("Connecting your secure workspace...");
-
-                const db = getSupabase();
-
-                await migrateLegacyData(userId, db);
-                await loadCloudData(userId, db);
-
-                cloudUserId = userId;
-
-                setStorageStatus("Your workspace is synced with your account.");
-                console.info("[Study Verse] Workspace cloud sync ready.");
-
-            } catch (error) {
-                cloudUserId = null;
-                setStorageStatus(
-                    "Cloud sync unavailable. Your device copy is preserved."
-                );
-
-                console.error("[Study Verse] Cloud workspace:", error);
-
-                if (typeof uiAction === "function") {
-                    uiAction(
-                        "Workspace cloud sync failed. Your local data is preserved.",
-                        "error"
-                    );
-                }
-            } finally {
-                activationPromise = null;
-            }
-        })();
-
-        return activationPromise;
-    }
-
-    async function syncRecord(type, item) {
-        if (!cloudUserId) return;
-
-        const rows = getCloudRows(cloudUserId);
-        const record = rows[type].find(row => row.id === item.id);
-
-        if (!record) return;
-
-        const { error } = await getSupabase()
-            .from(TABLES[type])
-            .upsert(record, { onConflict: "id" });
-
-        if (error) throw error;
-    }
-
-    async function deleteCloudRecord(type, id) {
-        if (!cloudUserId) return;
-
-        const { error } = await getSupabase()
-            .from(TABLES[type])
-            .delete()
-            .eq("id", id)
-            .eq("user_id", cloudUserId);
-
-        if (error) throw error;
-    }
-
-    function createWorkspace() {
-        const learnView = document.getElementById("learnView");
-        const testsView = document.getElementById("testsView");
-
-        if (!learnView || !testsView) {
-            console.warn("[Study Verse] Learning sections were not found.");
-            return;
-        }
-
-        if (document.getElementById("svPersonalWorkspace")) return;
-
-        const workspace = document.createElement("div");
-        workspace.id = "svPersonalWorkspace";
-
-        workspace.innerHTML = `
-            <style>
-                #svPersonalWorkspace {
-                    margin: 24px 0;
-                    color: inherit;
-                }
-                #svPersonalWorkspace .sv-panel {
-                    padding: 18px;
-                    margin: 16px 0;
-                    border: 1px solid var(--border-color, rgba(150,150,180,.2));
-                    border-radius: 16px;
-                    background: var(--card-bg, rgba(120,120,150,.07));
-                }
-                #svPersonalWorkspace h2,
-                #svPersonalWorkspace h3 {
-                    margin-top: 0;
-                }
-                #svPersonalWorkspace .sv-form {
-                    display: grid;
-                    gap: 10px;
-                    margin: 12px 0;
-                }
-                #svPersonalWorkspace input,
-                #svPersonalWorkspace textarea,
-                #svPersonalWorkspace select {
-                    width: 100%;
-                    box-sizing: border-box;
-                    padding: 12px;
-                    border: 1px solid var(--border-color, #777);
-                    border-radius: 10px;
-                    background: var(--input-bg, transparent);
-                    color: inherit;
-                    font: inherit;
-                }
-                #svPersonalWorkspace textarea {
-                    min-height: 75px;
-                    resize: vertical;
-                }
-                #svPersonalWorkspace button {
-                    padding: 10px 14px;
-                    border: 0;
-                    border-radius: 9px;
-                    cursor: pointer;
-                    font: inherit;
-                }
-                #svPersonalWorkspace .sv-primary {
-                    background: var(--accent-color, #7458e8);
-                    color: white;
-                }
-                #svPersonalWorkspace .sv-delete {
-                    background: rgba(220,70,70,.12);
-                    color: inherit;
-                    margin-top: 8px;
-                }
-                #svPersonalWorkspace .sv-item {
-                    padding: 12px;
-                    margin: 10px 0;
-                    border-radius: 10px;
-                    background: rgba(120,120,150,.09);
-                    overflow-wrap: anywhere;
-                }
-                #svPersonalWorkspace .sv-muted {
-                    opacity: .7;
-                    font-size: .9em;
-                }
-                #svPersonalWorkspace .sv-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
-                    gap: 12px;
-                }
-                #svPersonalWorkspace .sv-option {
-                    display: block;
-                    margin: 8px 0;
-                }
-            </style>
-
-            <div class="sv-panel">
-                <h2>My Learning Workspace</h2>
-                <p class="sv-muted">
-                    Organise your learning, track personal goals and practise
-                    at your own pace.
-                </p>
-                <p class="sv-muted" id="svWorkspaceStorageStatus">
-                    Your workspace is saved on this device.
-                </p>
-            </div>
-
-            <div class="sv-grid">
-                <section class="sv-panel">
-                    <h3>My Study Notes</h3>
-                    <form class="sv-form" data-form="note">
-                        <input name="title" maxlength="100"
-                            placeholder="Note title" required>
-                        <textarea name="body" maxlength="5000"
-                            placeholder="Write your study notes..." required></textarea>
-                        <button class="sv-primary" type="submit">Save Note</button>
-                    </form>
-                    <div id="svNotesList"></div>
-                </section>
-
-                <section class="sv-panel">
-                    <h3>My Learning Goals</h3>
-                    <form class="sv-form" data-form="goal">
-                        <input name="title" maxlength="150"
-                            placeholder="What do you want to achieve?" required>
-                        <input name="date" type="date">
-                        <button class="sv-primary" type="submit">Add Goal</button>
-                    </form>
-                    <div id="svGoalsList"></div>
-                </section>
-
-                <section class="sv-panel">
-                    <h3>My Flashcards</h3>
-                    <form class="sv-form" data-form="flashcard">
-                        <input name="front" maxlength="500"
-                            placeholder="Question or term" required>
-                        <textarea name="back" maxlength="2000"
-                            placeholder="Answer or explanation" required></textarea>
-                        <button class="sv-primary" type="submit">Create Flashcard</button>
-                    </form>
-                    <div id="svFlashcardsList"></div>
-                </section>
-
-                <section class="sv-panel">
-                    <h3>Build Your Own Practice Questions</h3>
-                    <form class="sv-form" data-form="question">
-                        <input name="question" maxlength="500"
-                            placeholder="Enter your question" required>
-                        <input name="a" maxlength="200" placeholder="Option A" required>
-                        <input name="b" maxlength="200" placeholder="Option B" required>
-                        <input name="c" maxlength="200" placeholder="Option C" required>
-                        <input name="d" maxlength="200" placeholder="Option D" required>
-                        <select name="correct" required>
-                            <option value="">Select correct answer</option>
-                            <option value="0">Option A</option>
-                            <option value="1">Option B</option>
-                            <option value="2">Option C</option>
-                            <option value="3">Option D</option>
-                        </select>
-                        <button class="sv-primary" type="submit">Save Question</button>
-                    </form>
-                    <div id="svQuestionsList"></div>
-                </section>
-            </div>
-        `;
-
-        learnView.appendChild(workspace);
-
-        const practiceLink = document.createElement("p");
-        practiceLink.className = "sv-muted";
-        practiceLink.textContent =
-            "Your saved practice questions are also available below in Practice & Tests.";
-        testsView.appendChild(practiceLink);
-
-        const practiceArea = document.createElement("div");
-        practiceArea.id = "svPracticeArea";
-        testsView.appendChild(practiceArea);
-
-        workspace.addEventListener("submit", handleSubmit);
-        workspace.addEventListener("click", handleClick);
-        workspace.addEventListener("change", handleChange);
-
-        practiceArea.addEventListener("click", handlePracticeClick);
-        practiceArea.addEventListener("change", handlePracticeChange);
-
-        renderAll();
-    }
-
-    async function handleSubmit(event) {
-        const form = event.target.closest("form[data-form]");
-        if (!form) return;
-
-        event.preventDefault();
-
-        const values = Object.fromEntries(new FormData(form).entries());
-        const id = newId();
-        let type;
-        let item;
-
-        if (form.dataset.form === "note") {
-            type = "notes";
-            item = {
-                id,
-                title: values.title.trim(),
-                body: values.body.trim(),
-                createdAt: new Date().toISOString()
-            };
-        } else if (form.dataset.form === "goal") {
-            type = "goals";
-            item = {
-                id,
-                title: values.title.trim(),
-                date: values.date || "",
-                completed: false
-            };
-        } else if (form.dataset.form === "flashcard") {
-            type = "flashcards";
-            item = {
-                id,
-                front: values.front.trim(),
-                back: values.back.trim(),
-                revealed: false
-            };
-        } else if (form.dataset.form === "question") {
-            type = "questions";
-            item = {
-                id,
-                question: values.question.trim(),
-                options: [values.a, values.b, values.c, values.d]
-                    .map(value => value.trim()),
-                correct: Number(values.correct)
-            };
-        } else {
-            return;
-        }
-
-        data[type].unshift(item);
-
-        if (!saveData()) {
-            data[type] = data[type].filter(record => record.id !== id);
-            return;
-        }
-
-        form.reset();
-        renderAll();
-
-        if (cloudUserId) {
-            try {
-                await syncRecord(type, item);
-                uiAction("Saved and synced successfully.", "success");
-            } catch (error) {
-                console.error("[Study Verse] Record sync:", error);
-                uiAction("Saved on this device. Cloud sync failed.", "error");
-            }
-        } else {
-            uiAction("Saved on this device.", "success");
-        }
-    }
-
-    async function handleClick(event) {
-        const button = event.target.closest("[data-action]");
-        if (!button) return;
-
-        const action = button.dataset.action;
-        const id = button.dataset.id;
-
-        const actions = {
-            "delete-note": "notes",
-            "delete-goal": "goals",
-            "delete-flashcard": "flashcards",
-            "delete-question": "questions"
-        };
-
-        if (actions[action]) {
-            const type = actions[action];
-
-            data[type] = data[type].filter(item => item.id !== id);
-
-            if (!saveData()) return;
-
-            renderAll();
-
-            try {
-                await deleteCloudRecord(type, id);
-                uiAction("Deleted successfully.", "success");
-            } catch (error) {
-                console.error("[Study Verse] Delete sync:", error);
-                uiAction("Deleted locally, but cloud deletion failed.", "error");
-            }
-
-            return;
-        }
-
-        if (action === "reveal-card") {
-            const card = data.flashcards.find(item => item.id === id);
-
-            if (card) {
-                card.revealed = !card.revealed;
-                saveData();
-                renderAll();
-            }
-        }
-    }
-
-    async function handleChange(event) {
-        const checkbox = event.target.closest("[data-goal]");
-        if (!checkbox) return;
-
-        const goal = data.goals.find(
-            item => item.id === checkbox.dataset.goal
-        );
-
-        if (!goal) return;
-
-        goal.completed = checkbox.checked;
-
-        if (!saveData()) return;
-
-        renderAll();
-
-        try {
-            await syncRecord("goals", goal);
-        } catch (error) {
-            console.error("[Study Verse] Goal sync:", error);
-            uiAction("Goal saved locally. Cloud sync failed.", "error");
-        }
-    }
-
-    function handlePracticeClick(event) {
-        const button = event.target.closest("[data-practice]");
-        if (!button) return;
-
-        const id = button.dataset.id;
-        const question = data.questions.find(item => item.id === id);
-
-        if (!question) return;
-
-        const selected = Array.from(
-            document.querySelectorAll("[data-answer]:checked")
-        ).find(input => input.dataset.answer === id);
-
-        const result = document.getElementById("svResult-" + id);
-
-        if (!selected) {
-            if (result) result.textContent = "Please select an answer first.";
-            return;
-        }
-
-        const correct = Number(selected.value) === question.correct;
-
-        if (result) {
-            result.textContent = correct
-                ? "Correct! Well done."
-                : "Not quite. Review the question and try again.";
-        }
-    }
-
-    function handlePracticeChange(event) {
-        if (!event.target.matches("[data-answer]")) return;
-
-        const result = document.getElementById(
-            "svResult-" + event.target.dataset.answer
-        );
-
-        if (result) result.textContent = "";
-    }
-
-    function renderAll() {
-        const notes = document.getElementById("svNotesList");
-        const goals = document.getElementById("svGoalsList");
-        const cards = document.getElementById("svFlashcardsList");
-        const questions = document.getElementById("svQuestionsList");
-        const practice = document.getElementById("svPracticeArea");
-
-        if (notes) {
-            notes.innerHTML = data.notes.length
-                ? data.notes.map(item => `
-                    <article class="sv-item">
-                        <strong>${safe(item.title)}</strong>
-                        <p>${safe(item.body).replace(/\n/g, "<br>")}</p>
-                        <button class="sv-delete" data-action="delete-note"
-                            data-id="${safe(item.id)}">Delete note</button>
-                    </article>
-                `).join("")
-                : '<p class="sv-muted">No notes saved yet.</p>';
-        }
-
-        if (goals) {
-            goals.innerHTML = data.goals.length
-                ? data.goals.map(item => `
-                    <article class="sv-item">
-                        <label>
-                            <input type="checkbox" data-goal="${safe(item.id)}"
-                                ${item.completed ? "checked" : ""}>
-                            <strong>${safe(item.title)}</strong>
-                        </label>
-                        <p class="sv-muted">
-                            ${item.date ? "Target: " + safe(item.date) : "No target date"}
-                        </p>
-                        <button class="sv-delete" data-action="delete-goal"
-                            data-id="${safe(item.id)}">Delete goal</button>
-                    </article>
-                `).join("")
-                : '<p class="sv-muted">No goals added yet.</p>';
-        }
-
-        if (cards) {
-            cards.innerHTML = data.flashcards.length
-                ? data.flashcards.map(item => `
-                    <article class="sv-item">
-                        <strong>${safe(item.front)}</strong>
-                        ${item.revealed ? `<p>${safe(item.back)}</p>` : ""}
-                        <button class="sv-primary" data-action="reveal-card"
-                            data-id="${safe(item.id)}">
-                            ${item.revealed ? "Hide answer" : "Reveal answer"}
-                        </button>
-                        <button class="sv-delete" data-action="delete-flashcard"
-                            data-id="${safe(item.id)}">Delete</button>
-                    </article>
-                `).join("")
-                : '<p class="sv-muted">No flashcards created yet.</p>';
-        }
-
-        if (questions) {
-            questions.innerHTML = data.questions.length
-                ? data.questions.map(item => `
-                    <article class="sv-item">
-                        <strong>${safe(item.question)}</strong>
-                        <p class="sv-muted">Saved for your practice session.</p>
-                        <button class="sv-delete" data-action="delete-question"
-                            data-id="${safe(item.id)}">Delete question</button>
-                    </article>
-                `).join("")
-                : '<p class="sv-muted">No practice questions created yet.</p>';
-        }
-
-        if (practice) {
-            practice.innerHTML = data.questions.length
-                ? `<div class="sv-panel">
-                    <h2>My Practice Questions</h2>
-                    <p class="sv-muted">Select an answer and check your result.</p>
-                    ${data.questions.map((item, index) => `
-                        <article class="sv-item">
-                            <strong>${index + 1}. ${safe(item.question)}</strong>
-                            ${item.options.map((option, optionIndex) => `
-                                <label class="sv-option">
-                                    <input type="radio" name="svq-${safe(item.id)}"
-                                        data-answer="${safe(item.id)}"
-                                        value="${optionIndex}">
-                                    ${safe(option)}
-                                </label>
-                            `).join("")}
-                            <button class="sv-primary" data-practice="check"
-                                data-id="${safe(item.id)}">Check answer</button>
-                            <p id="svResult-${safe(item.id)}" aria-live="polite"></p>
-                        </article>
-                    `).join("")}
-                </div>`
-                : `<div class="sv-panel">
-                    <h2>My Practice Questions</h2>
-                    <p class="sv-muted">
-                        Create your own questions in Learning Space to practise here.
-                    </p>
-                </div>`;
-        }
-    }
-
-    function init() {
-        createWorkspace();
-
-        window.addEventListener(
-            "studyverse:authenticated",
-            activateCloudWorkspace
-        );
-
-        if (currentUser && isApprovedUser()) {
-            activateCloudWorkspace();
-        }
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init, { once: true });
-    } else {
-        init();
-    }
-
-    window.StudyVerseWorkspace = Object.freeze({
-        refresh: renderAll,
-        sync: activateCloudWorkspace,
-        getData: () => JSON.parse(JSON.stringify(data))
-    });
-
+      const savedTheme = localStorage.getItem("sv-theme");
+      if (savedTheme) setTheme(savedTheme); else setTheme("dark");
+      const prefs = JSON.parse(localStorage.getItem("sv-curriculum") || "null");
+      if (prefs) {
+        state.curriculum = prefs.curriculum || state.curriculum;
+        state.level = prefs.level || state.level;
+      }
+      const accountPrefs = JSON.parse(localStorage.getItem("sv-preferences") || "null");
+      if (accountPrefs) { state.country=accountPrefs.country || state.country; state.language=accountPrefs.language || state.language; }
+      state.notes = readLocal("sv-notes");
+      state.goals = readLocal("sv-goals");
+      state.saved = readLocal("sv-saved");
+    } catch (error) { console.warn("Local preferences:",error); }
+    if ($("homeCurriculum")) $("homeCurriculum").value = state.curriculum;
+    handleCurriculumChange();
+    if ($("homeLevel")) $("homeLevel").value = state.level;
+    if ($("profileCountry")) $("profileCountry").value = state.country;
+    if ($("profileLanguage")) $("profileLanguage").value = state.language;
+    dateLabel(); renderSubjects(); renderNotes(); renderGoals(); renderTimer();
+    renderHomeActivity(); renderSavedResources(); renderPracticeHistory(); updateAccountUI();
+    try { showLoading(true,"Connecting to Study Verse…"); await restoreSession(); }
+    catch (error) { console.warn(error); }
+    finally { showLoading(false); }
+    if ($("aboutView")) loadFounderProfile();
+    if ($("libraryView")) loadLibraryResources();
+    console.info(`[${STUDY_VERSE_CONFIG.name}] ${STUDY_VERSE_CONFIG.version} initialized.`);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded",init,{once:true});
+  else init();
+
+  // Public read-only diagnostics for browser-console troubleshooting.
+  window.StudyVerse = Object.freeze({
+    version:STUDY_VERSE_CONFIG.version,
+    getState:()=>({authenticated:!!state.user,role:state.profile?.role || "GUEST",status:state.profile?.status || "GUEST",view:state.currentView}),
+    refreshLibrary:loadLibraryResources
+  });
 })();
-
-
