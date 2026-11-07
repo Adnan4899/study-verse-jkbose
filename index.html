@@ -1,853 +1,307 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#090d1b">
-  <meta name="description" content="Study Verse — Learn, Explore and Evolve with a global learning ecosystem.">
-  <meta name="author" content="Adnan Manzoor">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10131d">
+  <meta name="description" content="Study Verse — a global learning space to learn, explore and evolve.">
+  <meta name="color-scheme" content="dark light">
   <title>Study Verse — Learn • Explore • Evolve</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="premium.css">
 </head>
-
 <body>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
 
-  <!-- SPLASH SCREEN -->
-  <section id="splashScreen" class="splash-screen">
-    <div class="splash-content">
-      <div class="brand-symbol">S</div>
-      <h1>STUDY VERSE</h1>
-      <p>Learn. Explore. Evolve.</p>
-      <div class="loading-line"></div>
-    </div>
-  </section>
-
-  <!-- ONBOARDING -->
-  <section id="onboardingScreen" class="onboarding-screen hidden">
-    <div class="onboarding-content">
-      <div class="brand-symbol">S</div>
-      <span class="eyebrow">YOUR LEARNING JOURNEY STARTS HERE</span>
-
-      <h1>One world.<br><span>Unlimited learning.</span></h1>
-
-      <p>
-        Discover knowledge, build skills, explore new ideas and make
-        learning part of your everyday life.
-      </p>
-
-      <div class="intro-features">
-        <div class="intro-feature">
-          <span>✦</span>
-          <div>
-            <strong>Learn without limits</strong>
-            <small>Explore subjects and learning resources.</small>
-          </div>
-        </div>
-
-        <div class="intro-feature">
-          <span>◎</span>
-          <div>
-            <strong>Learn your way</strong>
-            <small>Build a learning experience around your goals.</small>
-          </div>
-        </div>
-
-        <div class="intro-feature">
-          <span>↗</span>
-          <div>
-            <strong>Grow every day</strong>
-            <small>Develop knowledge and practical skills.</small>
-          </div>
-        </div>
-      </div>
-
-      <button class="primary-btn" onclick="completeOnboarding()">
-        Explore Study Verse <span>→</span>
-      </button>
-
-      <p class="founder-credit">Founded by Adnan Manzoor</p>
-    </div>
-  </section>
-
-  <!-- MAIN APPLICATION -->
-  <div id="app-root" class="app-root hidden">
-
-    <!-- TOP BAR -->
-    <header class="topbar">
-      <a href="#" class="brand" onclick="navigateTo('homeView'); return false;">
-        <span class="brand-symbol small">S</span>
-        <span class="brand-name">STUDY VERSE</span>
+  <div class="app-shell" id="appShell">
+    <aside class="sidebar" id="desktopSidebar" aria-label="Main navigation">
+      <a class="brand-lockup" href="#" onclick="navigateTo('homeView');return false;" aria-label="Study Verse home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-copy"><strong>study<span>verse</span></strong><small>LEARN · EXPLORE · EVOLVE</small></span>
       </a>
 
-      <div class="topbar-actions">
-        <span id="connectionStatus" class="connection-status">Connecting...</span>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="side-nav">
+        <button class="nav-item active" type="button" data-nav="homeView" onclick="navigateTo('homeView',this)"><span class="nav-icon">⌂</span>Home</button>
+        <button class="nav-item" type="button" data-nav="exploreView" onclick="navigateTo('exploreView',this)"><span class="nav-icon">⌕</span>Explore</button>
+        <button class="nav-item" type="button" data-nav="learnView" onclick="navigateTo('learnView',this)"><span class="nav-icon">▤</span>My learning</button>
+        <button class="nav-item" type="button" data-nav="libraryView" onclick="navigateTo('libraryView',this)"><span class="nav-icon">▣</span>Library</button>
+        <button class="nav-item" type="button" data-nav="testsView" onclick="navigateTo('testsView',this)"><span class="nav-icon">✓</span>Practice</button>
+        <button class="nav-item" type="button" data-nav="workspaceView" onclick="navigateTo('workspaceView',this)"><span class="nav-icon">▦</span>Study workspace</button>
+        <button class="nav-item" type="button" data-nav="aiView" onclick="navigateTo('aiView',this)"><span class="nav-icon">✳</span>AI Mentor<span class="nav-pill">AI</span></button>
+      </nav>
 
-        <button class="icon-btn" type="button"
-          aria-label="Notifications" title="Notifications">
-          ♧
-        </button>
+      <div class="sidebar-label sidebar-label-spaced">YOUR SPACE</div>
+      <nav class="side-nav">
+        <button class="nav-item" type="button" data-nav="opportunitiesView" onclick="navigateTo('opportunitiesView',this)"><span class="nav-icon">◇</span>Opportunities</button>
+        <button class="nav-item" type="button" data-nav="communityView" onclick="navigateTo('communityView',this)"><span class="nav-icon">◎</span>Community</button>
+        <button class="nav-item" type="button" data-nav="profileView" onclick="navigateTo('profileView',this)"><span class="nav-icon">◉</span>Profile</button>
+      </nav>
 
-        <button class="avatar-btn" type="button"
-          onclick="navigateTo('profileView')" aria-label="Open profile">
-          A
-        </button>
+      <div class="sidebar-bottom">
+        <div class="sidebar-tip">
+          <span class="tip-spark">✦</span>
+          <strong>Your next step matters.</strong>
+          <p>Build understanding, one topic at a time.</p>
+          <button type="button" class="text-button" onclick="navigateTo('learnView')">Continue learning <span>→</span></button>
+        </div>
+        <button class="nav-item" type="button" onclick="toggleTheme()"><span class="nav-icon" id="themeIcon">◐</span><span id="themeLabel">Switch theme</span></button>
+        <button class="nav-item" type="button" onclick="navigateTo('aboutView')"><span class="nav-icon">ⓘ</span>About Study Verse</button>
       </div>
-    </header>
+    </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="main-container">
-
-      <!-- HOME -->
-      <section id="homeView" class="app-view active">
-
-        <div class="welcome-section">
-          <div>
-            <span class="eyebrow">YOUR PERSONAL LEARNING SPACE</span>
-            <h1 id="dynamicGreeting">Welcome to Study Verse</h1>
-            <p>Explore knowledge. Discover possibilities. Keep growing.</p>
-          </div>
-          <div class="welcome-decoration">✦</div>
+    <div class="app-main">
+      <header class="topbar">
+        <button class="icon-button mobile-menu-button" type="button" aria-label="Open navigation" onclick="toggleMobileMenu()">☰</button>
+        <div class="topbar-context">
+          <span class="eyebrow" id="topbarEyebrow">YOUR LEARNING SPACE</span>
+          <strong id="topbarTitle">A better way to learn.</strong>
         </div>
-
-        <div class="home-hero">
-          <div class="hero-content">
-            <span class="hero-label">THE FUTURE OF LEARNING</span>
-            <h2>Make every day<br>an opportunity to learn.</h2>
-            <p>
-              Access learning resources, explore new subjects and
-              develop skills for your future.
-            </p>
-
-            <button class="primary-btn" onclick="navigateTo('libraryView')">
-              Explore Library <span>→</span>
-            </button>
-          </div>
-
-          <div class="hero-art" aria-hidden="true">
-            <div class="orbit orbit-one"></div>
-            <div class="orbit orbit-two"></div>
-            <div class="hero-core">SV</div>
-            <span class="floating-star star-one">✦</span>
-            <span class="floating-star star-two">✧</span>
-          </div>
+        <div class="topbar-actions">
+          <button class="search-trigger" type="button" onclick="openGlobalSearch()" aria-label="Search Study Verse"><span>⌕</span><span class="search-placeholder">Search anything...</span><kbd>⌘ K</kbd></button>
+          <button class="icon-button" type="button" aria-label="Notifications" onclick="openNotifications()">♧<i class="notification-dot" id="notificationDot" hidden></i></button>
+          <button class="avatar-button" type="button" onclick="navigateTo('profileView')" aria-label="Open profile"><span id="headerAvatar">G</span></button>
         </div>
-
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">DISCOVER</span>
-            <h2>Your learning universe</h2>
-          </div>
-        </div>
-
-        <div class="feature-grid">
-
-          <article class="feature-card" onclick="navigateTo('libraryView')">
-            <div class="feature-icon">▤</div>
-            <h3>Global Library</h3>
-            <p>Explore notes, documents and study materials.</p>
-            <span class="card-arrow">Explore →</span>
-          </article>
-
-          <article class="feature-card" onclick="navigateTo('learnView')">
-            <div class="feature-icon">✦</div>
-            <h3>Learning Space</h3>
-            <p>Discover learning topics and build new skills.</p>
-            <span class="card-arrow">Discover →</span>
-          </article>
-
-          <article class="feature-card" onclick="navigateTo('testsView')">
-            <div class="feature-icon">◈</div>
-            <h3>Practice & Tests</h3>
-            <p>Prepare with quizzes and knowledge checks.</p>
-            <span class="card-arrow">Practise →</span>
-          </article>
-
-          <article class="feature-card" onclick="navigateTo('learnView')">
-  <div class="feature-icon">◎</div>
-  <h3>Study Workspace</h3>
-  <p>Manage your notes, learning goals and flashcards.</p>
-  <span class="card-arrow">Open Workspace →</span>
-          </article>
-
-          <article class="feature-card" onclick="navigateTo('founderView')">
-            <div class="feature-icon">✧</div>
-            <h3>Meet the Founder</h3>
-            <p>Discover the person and vision behind Study Verse.</p>
-            <span class="card-arrow">Explore →</span>
-          </article>
-
-        </div>
-
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">YOUR PLATFORM</span>
-            <h2>Built for curious minds</h2>
-          </div>
-        </div>
-
-        <div class="info-banner">
-          <div>
-            <h3>Learning has no boundaries.</h3>
-            <p>
-              Study Verse is being developed as a global learning
-              platform for students, educators and lifelong learners.
-            </p>
-          </div>
-          <span class="banner-symbol">∞</span>
-        </div>
-
-      </section>
-
-      <!-- GLOBAL LIBRARY -->
-      <section id="libraryView" class="app-view">
-
-        <div class="page-heading">
-          <span class="eyebrow">KNOWLEDGE COLLECTION</span>
-          <h1>Global Library</h1>
-          <p>Find and explore learning resources in one place.</p>
-        </div>
-
-        <div class="library-toolbar">
-          <input type="search" id="librarySearch"
-            placeholder="Search resources..." aria-label="Search resources">
-
-          <select id="libraryCategory" aria-label="Select resource category">
-            <option value="">All categories</option>
-            <option value="Notes">Notes</option>
-            <option value="Previous Year Papers">Previous Year Papers</option>
-            <option value="Study Materials">Study Materials</option>
-            <option value="Guess Papers">Guess Papers</option>
-            <option value="Books">Books</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div class="library-intro">
-          <h2>Explore resources</h2>
-          <p>Resources published by the Study Verse team will appear here.</p>
-        </div>
-
-        <div id="libraryResourceList" class="resource-list">
-          <div class="empty-state">
-            <div class="empty-icon">▤</div>
-            <h3>Your library awaits</h3>
-            <p>Published learning resources will appear here.</p>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- LEARNING SPACE -->
-      <section id="learnView" class="app-view">
-
-        <div class="page-heading">
-          <span class="eyebrow">EXPLORE AND GROW</span>
-          <h1>Learning Space</h1>
-          <p>Discover areas of knowledge and develop new abilities.</p>
-        </div>
-
-        <div class="learning-grid">
-
-          <article class="learning-card">
-            <span class="learning-icon">⌘</span>
-            <h3>Technology</h3>
-            <p>Explore computing, digital skills and emerging technologies.</p>
-            <span class="coming-label">Learning content coming soon</span>
-          </article>
-
-          <article class="learning-card">
-            <span class="learning-icon">✧</span>
-            <h3>Science</h3>
-            <p>Discover scientific ideas, concepts and discoveries.</p>
-            <span class="coming-label">Learning content coming soon</span>
-          </article>
-
-          <article class="learning-card">
-            <span class="learning-icon">文</span>
-            <h3>Languages</h3>
-            <p>Explore languages, communication and writing.</p>
-            <span class="coming-label">Learning content coming soon</span>
-          </article>
-
-          <article class="learning-card">
-            <span class="learning-icon">◉</span>
-            <h3>Mathematics</h3>
-            <p>Strengthen mathematical understanding and problem-solving.</p>
-            <span class="coming-label">Learning content coming soon</span>
-          </article>
-
-          <article class="learning-card">
-            <span class="learning-icon">◇</span>
-            <h3>Humanities</h3>
-            <p>Explore history, society, culture and ideas.</p>
-            <span class="coming-label">Learning content coming soon</span>
-          </article>
-
-          <article class="learning-card">
-            <span class="learning-icon">↗</span>
-            <h3>Career Skills</h3>
-            <p>Build communication, creativity and professional skills.</p>
-            <span class="coming-label">Learning content coming soon</span>
-          </article>
-
-        </div>
-
-        <div class="info-banner">
-          <div>
-            <h3>AI Learning Assistant</h3>
-            <p>
-              An AI-powered learning assistant is planned for a future
-              release. It is not connected yet.
-            </p>
-          </div>
-          <span class="banner-symbol">✦</span>
-        </div>
-
-      </section>
-
-      <!-- PRACTICE AND TESTS -->
-      <section id="testsView" class="app-view">
-
-        <div class="page-heading">
-          <span class="eyebrow">TEST YOUR KNOWLEDGE</span>
-          <h1>Practice & Tests</h1>
-          <p>Prepare, practise and strengthen your understanding.</p>
-        </div>
-
-        <div class="practice-grid">
-
-          <article class="practice-card">
-            <div class="feature-icon">?</div>
-            <h3>Knowledge Quizzes</h3>
-            <p>Short quizzes to check your understanding.</p>
-            <span class="coming-label">Coming soon</span>
-          </article>
-
-          <article class="practice-card">
-            <div class="feature-icon">▣</div>
-            <h3>Practice Tests</h3>
-            <p>Structured practice for different learning levels.</p>
-            <span class="coming-label">Coming soon</span>
-          </article>
-
-          <article class="practice-card" onclick="navigateTo('learnView')">
-  <div class="feature-icon">✧</div>
-  <h3>Flashcards</h3>
-  <p>Create, review and practise your own flashcards.</p>
-  <span class="card-arrow">Open Flashcards →</span>
-          </article>
-
-        </div>
-
-      </section>
-
-      <!-- PROFILE -->
-      <section id="profileView" class="app-view">
-
-        <div class="page-heading">
-          <span class="eyebrow">YOUR ACCOUNT</span>
-          <h1>Profile</h1>
-          <p>Manage your Study Verse account.</p>
-        </div>
-
-        <div class="profile-card">
-          <div class="profile-avatar">A</div>
-          <div class="profile-details">
-            <h2 id="profileName">Learner</h2>
-            <p id="profileEmail">Not signed in</p>
-          </div>
-        </div>
-
-        <div class="account-information">
-          <h3>Account information</h3>
-
-          <div class="account-row">
-            <span>Student ID</span>
-            <strong id="profileStudentId">Not assigned</strong>
-          </div>
-
-          <div class="account-row">
-            <span>Account role</span>
-            <strong id="accountRole">Guest</strong>
-          </div>
-
-          <div class="account-row">
-            <span>Account status</span>
-            <strong id="accountStatus">Not signed in</strong>
-          </div>
-        </div>
-
-        <div class="auth-card">
-          <div class="auth-heading">
-            <span class="eyebrow">STUDY VERSE ACCOUNT</span>
-            <h2 id="authTitle">Welcome back</h2>
-            <p id="authDescription">Sign in or create your learner account.</p>
-          </div>
-
-          <!-- LOGIN FORM -->
-          <form id="loginForm"
-            onsubmit="event.preventDefault(); loginStudent();">
-
-            <label for="loginEmail">Email address</label>
-            <input id="loginEmail" type="email"
-              placeholder="Enter your email" autocomplete="email" required>
-
-            <label for="loginPass">Password</label>
-            <input id="loginPass" type="password"
-              placeholder="Enter your password"
-              autocomplete="current-password" required>
-
-            <button id="loginBtn" class="primary-btn full-btn" type="submit">
-              Sign in
-            </button>
-
-            <p class="auth-switch">
-              New to Study Verse?
-              <button type="button" class="text-btn"
-                onclick="toggleAuthMode('register')">
-                Create an account
-              </button>
-            </p>
-
-            <button type="button" class="text-btn"
-              onclick="resetStudentPassword()">
-              Forgot password?
-            </button>
-
-          </form>
-
-          <!-- REGISTRATION FORM -->
-          <form id="registerForm" class="hidden"
-            onsubmit="event.preventDefault(); registerStudent();">
-
-            <label for="regName">Full name</label>
-            <input id="regName" type="text"
-              placeholder="Enter your full name" autocomplete="name" required>
-
-            <label for="regClass">Learning level / class</label>
-            <input id="regClass" type="text"
-              placeholder="Example: School, College, University" required>
-
-            <label for="regEmail">Email address</label>
-            <input id="regEmail" type="email"
-              placeholder="Enter your email" autocomplete="email" required>
-
-            <label for="regPass">Create password</label>
-            <input id="regPass" type="password"
-              placeholder="Create a password"
-              autocomplete="new-password" minlength="6" required>
-
-            <button id="regBtn" class="primary-btn full-btn" type="submit">
-              Create account
-            </button>
-
-            <p class="auth-note">
-              New accounts may require administrator approval before access
-              is granted.
-            </p>
-
-            <p class="auth-switch">
-              Already registered?
-              <button type="button" class="text-btn"
-                onclick="toggleAuthMode('login')">
-                Sign in
-              </button>
-            </p>
-
-          </form>
-
-          <button type="button" class="secondary-btn full-btn"
-            onclick="logoutStudent()">
-            Sign out
-        </div>
-        </button>
-        </div>
-        
-        <!-- ROLE-BASED DASHBOARD ACCESS -->
-<div id="roleDashboardPanel" class="hidden">
-
-    <div class="page-heading">
-        <span class="eyebrow">YOUR LEARNING CONTROL CENTRE</span>
-        <h2>My Dashboard</h2>
-        <p>Your personalised Study Verse dashboard.</p>
-    </div>
-
-    <!-- STUDENT DASHBOARD -->
-    <div id="studentDashboardAccess" class="feature-grid hidden">
-
-        <article class="feature-card"
-            onclick="navigateTo('learnView')">
-            <div class="feature-icon">✎</div>
-            <h3>My Learning</h3>
-            <p>Manage your notes, goals and flashcards.</p>
-            <span class="card-arrow">Open →</span>
-        </article>
-
-        <article class="feature-card"
-            onclick="navigateTo('libraryView')">
-            <div class="feature-icon">▤</div>
-            <h3>Learning Library</h3>
-            <p>Explore learning resources and study materials.</p>
-            <span class="card-arrow">Open →</span>
-        </article>
-
-        <article class="feature-card"
-            onclick="navigateTo('testsView')">
-            <div class="feature-icon">◎</div>
-            <h3>Practice Centre</h3>
-            <p>Access your practice activities and tests.</p>
-            <span class="card-arrow">Open →</span>
-        </article>
-
-    </div>
-
-    <!-- ADMIN DASHBOARD ACCESS -->
-    <div id="adminDashboardAccess" class="hidden">
-
-        <div class="info-banner">
-            <span class="eyebrow">ADMINISTRATION</span>
-            <h3>Platform Control Centre</h3>
-            <p>Manage learner accounts and platform operations.</p>
-
-            <button class="primary-btn" type="button"
-                onclick="navigateTo('adminView')">
-                Open Admin Dashboard →
-            </button>
-        </div>
-
-    </div>
-
-    <p id="dashboardAccessMessage" class="auth-note">
-        Dashboard access requires an approved account.
-    </p>
-
-</div>
-
-</section>
-
-<!-- PUBLIC FOUNDER PROFILE -->
-<section id="founderView" class="app-view">
-
-    <div class="page-heading">
-        <span class="eyebrow">THE PERSON BEHIND THE VISION</span>
-        <h1>Meet the Founder</h1>
-        <p>The vision, leadership and purpose behind Study Verse.</p>
-    </div>
-
-    <div class="founder-profile-card">
-
-        <div class="founder-profile-image">
-            <img
-                id="founderPublicImage"
-                src=""
-                alt="Study Verse Founder"
-                loading="lazy"
-                onerror="this.style.display='none';"
-            >
-        </div>
-
-        <div class="founder-profile-details">
-
-            <h2 id="founderPublicName">Founder</h2>
-
-            <p id="founderPublicDesignation">
-                Founder of Study Verse
-            </p>
-
-            <div id="founderPublicBiography">
-                <p>Building a learning ecosystem for students and lifelong learners.</p>
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="founder-vision-grid">
-
-        <article class="feature-card">
-            <h3>Our Vision</h3>
-            <div id="founderPublicVision">
-                <p>Making quality learning opportunities accessible to everyone.</p>
-            </div>
-        </article>
-
-        <article class="feature-card">
-            <h3>Our Mission</h3>
-            <div id="founderPublicMission">
-                <p>Creating an inclusive, accessible and innovative learning ecosystem.</p>
-            </div>
-        </article>
-
-    </div>
-
-    <div id="founderPublicSocialLinks"></div>
-
-</section>
-
-<!-- ADMIN DASHBOARD -->
-      <section id="adminView" class="app-view">
-
-        <div class="page-heading">
-          <span class="eyebrow">PLATFORM MANAGEMENT</span>
-          <h1>Admin Dashboard</h1>
-          <p>Manage learner accounts and platform access.</p>
-        </div>
-
-        <div class="admin-stats">
-
-          <article class="stat-card">
-            <span>Total users</span>
-            <strong id="adminTotalUsers">0</strong>
-          </article>
-
-          <article class="stat-card">
-            <span>Pending</span>
-            <strong id="adminPendingUsers">0</strong>
-          </article>
-
-          <article class="stat-card">
-            <span>Approved</span>
-            <strong id="adminApprovedUsers">0</strong>
-          </article>
-
-          <article class="stat-card">
-            <span>Rejected</span>
-            <strong id="adminRejectedUsers">0</strong>
-          </article>
-
-          <article class="stat-card">
-            <span>Suspended</span>
-            <strong id="adminSuspendedUsers">0</strong>
-          </article>
-
-        </div>
-
-        <div class="admin-management">
-
-          <div class="admin-toolbar">
+      </header>
+
+      <main id="mainContent" class="main-content">
+        <!-- HOME -->
+        <section class="view active" id="homeView" data-view="homeView">
+          <div class="welcome-row">
             <div>
-              <h2>Learner management</h2>
-              <p>Review account applications and access status.</p>
+              <div class="eyebrow"><span class="status-dot"></span> A SPACE TO GROW</div>
+              <h1 id="homeGreeting">Make room for <em>what's next.</em></h1>
+              <p class="hero-subtitle">A calmer, smarter space for learning — wherever your journey begins.</p>
             </div>
-
-            <button class="secondary-btn" type="button"
-              onclick="loadAdminDashboard()">
-              ↻ Refresh
-            </button>
+            <div class="date-chip" id="todayDate">YOUR LEARNING JOURNEY</div>
           </div>
 
-          <div class="admin-filters">
-
-            <input id="adminStudentSearch" type="search"
-              placeholder="Search learners..." aria-label="Search learners">
-
-            <select id="adminStatusFilter"
-              aria-label="Filter by account status">
-              <option value="">All statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="SUSPENDED">Suspended</option>
-            </select>
-
-          </div>
-
-          <div id="adminStudentList" class="admin-student-list">
-            <div class="empty-state">
-              <h3>Admin data will appear here</h3>
-              <p>Administrator access is required to manage accounts.</p>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- FOUNDER PROFILE ADMIN EDITOR -->
-        <div class="admin-management founder-admin-editor">
-
-          <div class="admin-toolbar">
-            <div>
-              <span class="eyebrow">PLATFORM IDENTITY</span>
-              <h2>Founder Profile Editor</h2>
-              <p>Manage the public Founder profile displayed on Study Verse.</p>
-            </div>
-
-            <button class="secondary-btn" type="button"
-              onclick="loadFounderEditor()">
-              ↻ Load profile
-            </button>
-          </div>
-
-          <div class="founder-editor-form">
-
-            <label for="founderNameInput">Founder name</label>
-            <input id="founderNameInput" type="text"
-              placeholder="Enter founder name">
-
-            <label for="founderDesignationInput">Designation</label>
-            <input id="founderDesignationInput" type="text"
-              placeholder="Founder & Creator">
-
-            <label for="founderBiographyInput">Biography</label>
-            <textarea id="founderBiographyInput" rows="5"
-              placeholder="Write the founder biography..."></textarea>
-
-            <label for="founderVisionInput">Vision</label>
-            <textarea id="founderVisionInput" rows="4"
-              placeholder="Write the platform vision..."></textarea>
-
-            <label for="founderMissionInput">Mission</label>
-            <textarea id="founderMissionInput" rows="4"
-              placeholder="Write the platform mission..."></textarea>
-
-            <div class="founder-editor-divider"></div>
-
-            <h3>Social and website links</h3>
-
-            <label for="founderWebsiteInput">Website</label>
-            <input id="founderWebsiteInput" type="url"
-              placeholder="https://example.com">
-
-            <label for="founderInstagramInput">Instagram</label>
-            <input id="founderInstagramInput" type="url"
-              placeholder="https://instagram.com/username">
-
-            <label for="founderLinkedInInput">LinkedIn</label>
-            <input id="founderLinkedInInput" type="url"
-              placeholder="https://linkedin.com/in/username">
-
-            <label for="founderYouTubeInput">YouTube</label>
-            <input id="founderYouTubeInput" type="url"
-              placeholder="https://youtube.com/@username">
-
-            <label for="founderXInput">X</label>
-            <input id="founderXInput" type="url"
-              placeholder="https://x.com/username">
-
-            <div class="founder-editor-divider"></div>
-
-            <h3>Founder portrait</h3>
-            <p>
-              Select a JPG, PNG or WebP image. Maximum file size: 5 MB.
-            </p>
-
-            <label for="founderImageInput">Choose image</label>
-            <input id="founderImageInput" type="file"
-              accept="image/jpeg,image/png,image/webp">
-
-            <div class="founder-image-preview-area">
-              <img id="founderEditorPreview"
-                class="hidden"
-                alt="Founder image preview">
-            </div>
-
-            <!-- IMAGE CROPPING CONTROLS -->
-            <div id="founderCropPanel" class="founder-crop-panel hidden">
-
-              <h3>Adjust your portrait</h3>
-
-              <p>Use the controls to position and zoom your image.</p>
-
-              <div class="founder-crop-canvas-wrap">
-                <canvas id="founderCropCanvas"
-                  width="500" height="500"
-                  aria-label="Circular founder image crop preview">
-                </canvas>
+          <section class="hero-panel">
+            <div class="hero-panel-content">
+              <span class="mini-label">STUDY VERSE · GLOBAL LEARNING</span>
+              <h2>Curiosity is a<br><span>powerful beginning.</span></h2>
+              <p>Explore subjects, build useful skills and make learning feel more connected to your goals.</p>
+              <div class="hero-actions">
+                <button class="button button-primary" type="button" onclick="navigateTo('exploreView')">Explore learning <span>↗</span></button>
+                <button class="button button-quiet" type="button" onclick="navigateTo('aiView')">Meet your AI Mentor <span>✳</span></button>
               </div>
-
-              <label for="founderZoom">Zoom</label>
-              <input id="founderZoom" type="range"
-                min="1" max="3" step="0.05" value="1">
-
-              <label for="founderPositionX">Horizontal position</label>
-              <input id="founderPositionX" type="range"
-                min="0" max="100" value="50">
-
-              <label for="founderPositionY">Vertical position</label>
-              <input id="founderPositionY" type="range"
-                min="0" max="100" value="50">
-
-              <button id="founderCropReset"
-                class="secondary-btn" type="button">
-                Reset crop
-              </button>
-
             </div>
-
-            <div class="founder-publish-control">
-              <label for="founderPublishToggle">
-                Publish Founder profile
-              </label>
-
-              <input id="founderPublishToggle" type="checkbox">
-
-              <p id="founderPublishStatus">Not published</p>
+            <div class="hero-art" aria-hidden="true">
+              <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+              <div class="hero-orb"><span class="orb-core">S<span>V</span></span></div>
+              <span class="orbit-tag tag-one">LEARN</span><span class="orbit-tag tag-two">CREATE</span><span class="orbit-tag tag-three">GROW</span>
             </div>
+            <div class="hero-foot"><span>01 / YOUR JOURNEY</span><span>LEARN AT YOUR OWN PACE</span></div>
+          </section>
 
-            <button id="founderSaveButton"
-              class="primary-btn full-btn" type="button">
-              Save Founder Profile
+          <div class="section-heading">
+            <div><span class="eyebrow">YOUR STARTING POINT</span><h2>What would you like to do?</h2></div>
+            <button class="text-button" type="button" onclick="navigateTo('exploreView')">Explore all <span>→</span></button>
+          </div>
+          <div class="action-grid">
+            <button class="action-card action-card-ai" type="button" onclick="navigateTo('aiView')">
+              <span class="action-icon">✳</span><span class="card-kicker">AI-POWERED SUPPORT</span><strong>Understand something</strong><p>Ask questions and explore ideas with learning-focused guidance.</p><span class="card-arrow">↗</span>
             </button>
-
+            <button class="action-card" type="button" onclick="navigateTo('libraryView')">
+              <span class="action-icon">▤</span><span class="card-kicker">LEARNING LIBRARY</span><strong>Find study material</strong><p>Discover notes, guides and resources organised for learning.</p><span class="card-arrow">↗</span>
+            </button>
+            <button class="action-card" type="button" onclick="navigateTo('testsView')">
+              <span class="action-icon">◈</span><span class="card-kicker">PRACTICE & REVIEW</span><strong>Test your understanding</strong><p>Practise a topic and learn from clear answer explanations.</p><span class="card-arrow">↗</span>
+            </button>
+            <button class="action-card" type="button" onclick="navigateTo('workspaceView')">
+              <span class="action-icon">▦</span><span class="card-kicker">PERSONAL WORKSPACE</span><strong>Plan your learning</strong><p>Keep notes, goals and revision tasks in one organised place.</p><span class="card-arrow">↗</span>
+            </button>
           </div>
 
-        </div>
+          <div class="home-lower-grid">
+            <section class="content-panel curriculum-panel">
+              <div class="panel-heading"><div><span class="eyebrow">MAKE IT YOURS</span><h3>Your learning pathway</h3></div><span class="panel-symbol">⌁</span></div>
+              <p class="panel-description">Choose an education system and level to find learning materials that match your journey.</p>
+              <div class="selection-row">
+                <label class="field-label" for="homeCountry">Country or region</label>
+                <select id="homeCountry" class="form-control" onchange="handleCurriculumChange()">
+                  <option value="">Choose a country</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Canada">Canada</option><option value="Australia">Australia</option><option value="Pakistan">Pakistan</option><option value="Bangladesh">Bangladesh</option><option value="Nepal">Nepal</option><option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="selection-row">
+                <label class="field-label" for="homeCurriculum">Education system / board</label>
+                <select id="homeCurriculum" class="form-control" onchange="handleCurriculumChange()">
+                  <option value="">Choose a system</option><option value="JKBOSE">JKBOSE</option><option value="CBSE">CBSE</option><option value="CISCE">CISCE</option><option value="State Board">State Board</option><option value="GCSE">GCSE</option><option value="A-levels">A-levels</option><option value="IB">International Baccalaureate</option><option value="University">University / College</option><option value="Independent">Independent learning</option>
+                </select>
+              </div>
+              <div class="selection-row">
+                <label class="field-label" for="homeLevel">Level / class / year</label>
+                <select id="homeLevel" class="form-control"><option value="">Choose your level</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option><option>Undergraduate</option><option>Postgraduate</option><option>Other</option></select>
+              </div>
+              <button class="button button-primary button-full" type="button" onclick="saveHomeCurriculum()">Save learning pathway <span>→</span></button>
+              <p class="micro-copy" id="curriculumSaveMessage" aria-live="polite">You can update these choices at any time.</p>
+            </section>
 
-      </section>
+            <section class="content-panel activity-panel">
+              <div class="panel-heading"><div><span class="eyebrow">A LITTLE AT A TIME</span><h3>Your learning activity</h3></div><span class="panel-symbol">◷</span></div>
+              <div class="activity-empty" id="homeActivityEmpty"><div class="empty-illustration">✧</div><strong>Your story starts here.</strong><p>As you learn and practise, your recent activity will appear in this space.</p><button class="text-button" type="button" onclick="navigateTo('exploreView')">Find your first topic <span>→</span></button></div>
+              <div id="homeActivityList" class="activity-list" hidden></div>
+            </section>
+          </div>
+        </section>
 
-    </main>
+        <!-- EXPLORE -->
+        <section class="view" id="exploreView" data-view="exploreView" hidden>
+          <div class="page-intro"><span class="eyebrow">OPEN A NEW DOOR</span><h1>Explore <em>possibility.</em></h1><p>Discover subjects, curricula and learning paths from around the world.</p></div>
+          <div class="explore-search content-panel"><span class="large-search-icon">⌕</span><input id="exploreSearchInput" type="search" placeholder="Search subjects, topics or learning areas..." oninput="searchExplore(this.value)" aria-label="Search learning areas"><button class="button button-primary" type="button" onclick="searchExplore(document.getElementById('exploreSearchInput').value)">Search</button></div>
+          <div class="filter-row" role="group" aria-label="Explore categories"><button class="filter-chip active" type="button" data-explore-filter="all" onclick="filterExplore('all',this)">All areas</button><button class="filter-chip" type="button" data-explore-filter="school" onclick="filterExplore('school',this)">School</button><button class="filter-chip" type="button" data-explore-filter="university" onclick="filterExplore('university',this)">University</button><button class="filter-chip" type="button" data-explore-filter="skills" onclick="filterExplore('skills',this)">Skills</button><button class="filter-chip" type="button" data-explore-filter="independent" onclick="filterExplore('independent',this)">Self-learning</button></div>
+          <div class="explore-grid" id="exploreGrid">
+            <article class="explore-card" data-category="school"><span class="explore-card-icon">∑</span><span class="card-kicker">SCHOOL LEARNING</span><h3>Mathematics</h3><p>Build confidence with concepts, examples and practice.</p><button class="text-button" type="button" onclick="openSubject('Mathematics')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="school"><span class="explore-card-icon">⚗</span><span class="card-kicker">SCHOOL LEARNING</span><h3>Science</h3><p>Explore the ideas behind the world around you.</p><button class="text-button" type="button" onclick="openSubject('Science')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="school"><span class="explore-card-icon">文</span><span class="card-kicker">LANGUAGE & HUMANITIES</span><h3>Languages</h3><p>Strengthen reading, writing and communication.</p><button class="text-button" type="button" onclick="openSubject('Languages')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="school"><span class="explore-card-icon">◎</span><span class="card-kicker">SCHOOL LEARNING</span><h3>Social Sciences</h3><p>Understand people, places, societies and history.</p><button class="text-button" type="button" onclick="openSubject('Social Sciences')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="university"><span class="explore-card-icon">⌘</span><span class="card-kicker">HIGHER EDUCATION</span><h3>Computer Science</h3><p>Learn computational thinking and digital foundations.</p><button class="text-button" type="button" onclick="openSubject('Computer Science')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="university"><span class="explore-card-icon">◫</span><span class="card-kicker">HIGHER EDUCATION</span><h3>Business & Economics</h3><p>Explore organisations, markets and decision-making.</p><button class="text-button" type="button" onclick="openSubject('Business & Economics')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="skills"><span class="explore-card-icon">✳</span><span class="card-kicker">PRACTICAL SKILLS</span><h3>AI & Digital Skills</h3><p>Develop thoughtful, responsible digital capabilities.</p><button class="text-button" type="button" onclick="openSubject('AI & Digital Skills')">Explore subject <span>→</span></button></article>
+            <article class="explore-card" data-category="independent"><span class="explore-card-icon">↗</span><span class="card-kicker">LIFELONG LEARNING</span><h3>Personal Growth</h3><p>Follow your curiosity and build knowledge at your pace.</p><button class="text-button" type="button" onclick="openSubject('Personal Growth')">Explore subject <span>→</span></button></article>
+          </div>
+          <div class="notice-panel"><span>ⓘ</span><p><strong>Growing globally, one curriculum at a time.</strong> Learning areas are starting points. Curriculum-specific materials appear as verified content is added.</p></div>
+        </section>
 
-    <!-- BOTTOM NAVIGATION -->
-    <nav id="bottomNav" class="bottom-nav" aria-label="Main navigation">
+        <!-- LEARNING -->
+        <section class="view" id="learnView" data-view="learnView" hidden>
+          <div class="page-intro"><span class="eyebrow">YOUR LEARNING PATH</span><h1>Learn with <em>intention.</em></h1><p>Keep your learning organised and return to topics when you're ready.</p></div>
+          <div class="learning-overview-grid">
+            <div class="content-panel learning-main-card"><span class="eyebrow">YOUR PATHWAY</span><h2 id="learningPathTitle">Choose where to begin.</h2><p id="learningPathDescription">Set your curriculum on the home page to personalise this learning space.</p><button class="button button-primary" type="button" onclick="navigateTo('homeView')">Set learning pathway <span>→</span></button></div>
+            <div class="content-panel learning-side-card"><span class="eyebrow">LEARNING PRINCIPLE</span><div class="large-quote-mark">“</div><h3>Understanding grows when you make time to practise.</h3><p>Choose a manageable goal and build from there.</p></div>
+          </div>
+          <div class="section-heading"><div><span class="eyebrow">BUILD YOUR FOUNDATION</span><h2>Learning tools</h2></div></div>
+          <div class="tool-grid">
+            <button class="tool-card" type="button" onclick="navigateTo('libraryView')"><span>▤</span><strong>Study resources</strong><small>Browse learning materials</small><b>↗</b></button>
+            <button class="tool-card" type="button" onclick="navigateTo('testsView')"><span>✓</span><strong>Practice tests</strong><small>Check your understanding</small><b>↗</b></button>
+            <button class="tool-card" type="button" onclick="navigateTo('workspaceView')"><span>▦</span><strong>My notes & goals</strong><small>Organise your study space</small><b>↗</b></button>
+            <button class="tool-card" type="button" onclick="navigateTo('aiView')"><span>✳</span><strong>AI explanations</strong><small>Explore a difficult concept</small><b>↗</b></button>
+          </div>
+          <section class="content-panel resource-section"><div class="panel-heading"><div><span class="eyebrow">CURATED LEARNING</span><h3>Recently added resources</h3></div><button class="text-button" type="button" onclick="navigateTo('libraryView')">Open library →</button></div><div id="learningRecentResources" class="resource-list"><div class="empty-state-inline"><span>▤</span><p>Resources will appear here when they are published and available.</p></div></div></section>
+        </section>
 
-      <button class="tab-item active" type="button"
-        data-view="homeView" onclick="navigateTo('homeView')">
-        <span class="tab-icon">⌂</span>
-        <span>Home</span>
-      </button>
+        <!-- LIBRARY -->
+        <section class="view" id="libraryView" data-view="libraryView" hidden>
+          <div class="page-intro"><span class="eyebrow">A LIBRARY FOR EVERY LEARNER</span><h1>Knowledge, <em>within reach.</em></h1><p>Find learning resources and keep useful material close at hand.</p></div>
+          <div class="library-toolbar content-panel"><div class="library-search"><span>⌕</span><input id="librarySearchInput" type="search" placeholder="Search title, subject or topic..." oninput="filterLibraryResources()" aria-label="Search library"></div><select id="libraryTypeFilter" class="form-control compact-control" onchange="filterLibraryResources()" aria-label="Filter resource type"><option value="">All resource types</option><option value="notes">Notes</option><option value="paper">Question papers</option><option value="guide">Study guides</option><option value="syllabus">Syllabus</option><option value="worksheet">Worksheets</option><option value="video">Videos</option></select><select id="libraryLevelFilter" class="form-control compact-control" onchange="filterLibraryResources()" aria-label="Filter level"><option value="">All levels</option><option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option><option>Undergraduate</option><option>All levels</option></select></div>
+          <div class="library-meta"><span id="libraryResultCount">Browse available resources</span><button class="text-button" type="button" onclick="clearLibraryFilters()">Clear filters</button></div>
+          <div id="libraryResourcesGrid" class="library-grid"><div class="empty-library content-panel"><div class="empty-illustration">▤</div><h3>Your library is ready to grow.</h3><p>Published and accessible resources will appear here. No documents are presented as official unless their source has been verified.</p></div></div>
+        </section>
 
-      <button class="tab-item" type="button"
-        data-view="libraryView" onclick="navigateTo('libraryView')">
-        <span class="tab-icon">▤</span>
-        <span>Library</span>
-      </button>
+        <!-- PRACTICE -->
+        <section class="view" id="testsView" data-view="testsView" hidden>
+          <div class="page-intro"><span class="eyebrow">PRACTISE · REFLECT · IMPROVE</span><h1>Make knowledge <em>stick.</em></h1><p>Use practice to strengthen understanding, not to measure your worth.</p></div>
+          <div class="practice-banner content-panel"><div><span class="eyebrow">YOUR PRACTICE SPACE</span><h2>Small steps build strong foundations.</h2><p>Choose a subject and topic to begin a practice session when question sets are available.</p></div><div class="practice-mark">✓</div></div>
+          <div class="practice-controls content-panel"><div class="field-group"><label for="practiceSubject">Subject</label><select id="practiceSubject" class="form-control"><option value="">Select a subject</option><option>Mathematics</option><option>Science</option><option>English</option><option>Social Sciences</option><option>Computer Science</option></select></div><div class="field-group"><label for="practiceDifficulty">Difficulty</label><select id="practiceDifficulty" class="form-control"><option value="mixed">Mixed</option><option value="easy">Foundational</option><option value="medium">Intermediate</option><option value="hard">Advanced</option></select></div><div class="field-group"><label for="practiceQuestionCount">Questions</label><select id="practiceQuestionCount" class="form-control"><option value="5">5 questions</option><option value="10">10 questions</option><option value="15">15 questions</option></select></div><button class="button button-primary" type="button" onclick="startPracticeSession()">Start practice <span>→</span></button></div>
+          <div id="practiceSession" class="content-panel practice-session" hidden><div class="panel-heading"><div><span class="eyebrow" id="practiceProgressLabel">PRACTICE SESSION</span><h3 id="practiceQuestionTitle">Question</h3></div><span class="question-counter" id="practiceQuestionCounter"></span></div><div id="practiceQuestionBody"></div><div id="practiceFeedback" class="practice-feedback" aria-live="polite"></div><div class="practice-footer"><button class="button button-quiet" type="button" onclick="endPracticeSession()">Exit practice</button><button class="button button-primary" id="practiceNextButton" type="button" onclick="submitOrNextPractice()">Check answer</button></div></div>
+          <section class="content-panel history-panel"><div class="panel-heading"><div><span class="eyebrow">YOUR PROGRESS</span><h3>Practice history</h3></div></div><div id="practiceHistory" class="empty-state-inline"><span>◷</span><p>Your completed practice sessions will be listed here.</p></div></section>
+        </section>
 
-      <button class="tab-item" type="button"
-        data-view="learnView" onclick="navigateTo('learnView')">
-        <span class="tab-icon">✦</span>
-        <span>Learn</span>
-      </button>
+        <!-- AI MENTOR -->
+        <section class="view" id="aiView" data-view="aiView" hidden>
+          <div class="page-intro ai-page-intro"><span class="eyebrow"><span class="status-dot"></span> STUDY VERSE INTELLIGENCE</span><h1>Meet your <em>AI Mentor.</em></h1><p>A learning companion designed to help you understand ideas, not just collect answers.</p></div>
+          <div class="ai-layout">
+            <aside class="ai-tools-panel content-panel"><span class="eyebrow">LEARNING MODES</span><button class="ai-mode active" type="button" data-ai-mode="tutor" onclick="setAIMode('tutor',this)"><span>✳</span><span><strong>AI Tutor</strong><small>Understand a concept</small></span></button><button class="ai-mode" type="button" data-ai-mode="summarise" onclick="setAIMode('summarise',this)"><span>▤</span><span><strong>Study summary</strong><small>Organise key ideas</small></span></button><button class="ai-mode" type="button" data-ai-mode="quiz" onclick="setAIMode('quiz',this)"><span>◈</span><span><strong>Quiz builder</strong><small>Practise a topic</small></span></button><button class="ai-mode" type="button" data-ai-mode="flashcards" onclick="setAIMode('flashcards',this)"><span>▧</span><span><strong>Flashcards</strong><small>Review what you know</small></span></button><button class="ai-mode" type="button" data-ai-mode="writing" onclick="setAIMode('writing',this)"><span>✎</span><span><strong>Writing guide</strong><small>Improve your own draft</small></span></button><div class="ai-privacy-note"><span>◇</span><p>AI responses can make mistakes. Check important information against trusted learning sources.</p></div></aside>
+            <section class="ai-chat-panel content-panel">
+              <div class="chat-header"><div class="ai-avatar">✳</div><div><strong>Study Verse AI</strong><span id="aiModeDescription">Tutor mode · Step-by-step explanations</span></div><span class="connection-state" id="aiConnectionState">Service status checking</span></div>
+              <div class="chat-messages" id="aiChatMessages" aria-live="polite"><div class="assistant-message"><span class="message-avatar">✳</span><div class="message-bubble"><strong>Let's make a difficult idea clearer.</strong><p>Tell me what you're studying, what level you're at, and which part you'd like to understand. I'll guide you through it when the AI service is connected.</p><span class="message-note">AI-generated learning support · Verify important facts</span></div></div></div>
+              <div class="prompt-suggestions" id="aiPromptSuggestions"><button type="button" onclick="useAIPrompt('Explain a difficult topic in simple steps.')">Explain a topic simply</button><button type="button" onclick="useAIPrompt('Help me create a short revision plan.')">Make a revision plan</button><button type="button" onclick="useAIPrompt('Give me practice questions on a topic I choose.')">Create practice questions</button></div>
+              <form class="chat-composer" id="aiChatForm" onsubmit="sendAIMessage(event)"><textarea id="aiMessageInput" rows="1" maxlength="4000" placeholder="Ask a learning question..." aria-label="Message Study Verse AI"></textarea><button class="send-button" type="submit" aria-label="Send message">↑</button></form>
+              <div class="chat-disclaimer">Do not share passwords, private contact details or sensitive personal information.</div>
+            </section>
+          </div>
+        </section>
 
-      <button class="tab-item" type="button"
-        data-view="testsView" onclick="navigateTo('testsView')">
-        <span class="tab-icon">◈</span>
-        <span>Practice</span>
-      </button>
+        <!-- PERSONAL WORKSPACE -->
+        <section class="view" id="workspaceView" data-view="workspaceView" hidden>
+          <div class="page-intro"><span class="eyebrow">YOUR PERSONAL SPACE</span><h1>Make learning <em>your own.</em></h1><p>A simple place for notes, goals and the small tasks that move you forward.</p></div>
+          <div class="workspace-grid">
+            <section class="content-panel workspace-card notes-card"><div class="panel-heading"><div><span class="eyebrow">THINK IT THROUGH</span><h3>Quick notes</h3></div><span class="panel-symbol">✎</span></div><label class="sr-only" for="personalNoteTitle">Note title</label><input id="personalNoteTitle" class="form-control" maxlength="100" placeholder="Give your note a title"><label class="sr-only" for="personalNoteBody">Note content</label><textarea id="personalNoteBody" class="form-control note-textarea" rows="6" maxlength="10000" placeholder="Write down an idea, a question or something you want to remember..."></textarea><div class="note-actions"><span id="noteSaveStatus" class="micro-copy" aria-live="polite">Your notes are saved in this browser.</span><button class="button button-primary" type="button" onclick="savePersonalNote()">Save note</button></div><div id="personalNotesList" class="personal-notes-list"></div></section>
+            <section class="content-panel workspace-card goals-card"><div class="panel-heading"><div><span class="eyebrow">A CLEAR NEXT STEP</span><h3>Learning goals</h3></div><span class="panel-symbol">◎</span></div><form id="goalForm" class="goal-form" onsubmit="addLearningGoal(event)"><label class="sr-only" for="goalInput">New learning goal</label><input id="goalInput" class="form-control" maxlength="160" placeholder="e.g. Review one chapter"><button class="button button-primary" type="submit">Add goal</button></form><div id="learningGoalsList" class="goals-list"><div class="empty-state-inline"><span>◇</span><p>Choose one manageable goal to get started.</p></div></div></section>
+            <section class="content-panel workspace-card timer-card"><div class="panel-heading"><div><span class="eyebrow">FOCUS WITH BREAKS</span><h3>Focus timer</h3></div><span class="panel-symbol">◷</span></div><div class="timer-display" id="focusTimerDisplay">25:00</div><p id="focusTimerStatus">A gentle focus session. Take breaks when you need them.</p><div class="timer-controls"><button class="button button-primary" id="focusTimerButton" type="button" onclick="toggleFocusTimer()">Start focus</button><button class="button button-quiet" type="button" onclick="resetFocusTimer()">Reset</button></div><div class="timer-presets"><button type="button" class="filter-chip active" data-minutes="25" onclick="setFocusDuration(25,this)">25 min</button><button type="button" class="filter-chip" data-minutes="15" onclick="setFocusDuration(15,this)">15 min</button><button type="button" class="filter-chip" data-minutes="5" onclick="setFocusDuration(5,this)">5 min</button></div></section>
+            <section class="content-panel workspace-card saved-card"><div class="panel-heading"><div><span class="eyebrow">KEEP CLOSE</span><h3>Saved resources</h3></div><span class="panel-symbol">▣</span></div><div id="savedResourcesList" class="empty-state-inline"><span>▣</span><p>Resources you bookmark will appear here.</p></div></section>
+          </div>
+        </section>
 
-      <button class="tab-item" type="button"
-        data-view="profileView" onclick="navigateTo('profileView')">
-        <span class="tab-icon">◎</span>
-        <span>Profile</span>
-      </button>
+        <!-- OPPORTUNITIES -->
+        <section class="view" id="opportunitiesView" data-view="opportunitiesView" hidden>
+          <div class="page-intro"><span class="eyebrow">DISCOVER WHAT'S POSSIBLE</span><h1>Opportunities to <em>grow.</em></h1><p>Explore education and skill-building opportunities. Always verify details with the official provider.</p></div>
+          <div class="notice-panel"><span>ⓘ</span><p><strong>Accuracy matters.</strong> This section will display opportunities only when a source, region, eligibility details and relevant dates can be provided. No deadlines or scholarships are invented.</p></div>
+          <div id="opportunitiesList" class="opportunities-list"><div class="empty-library content-panel"><div class="empty-illustration">◇</div><h3>Opportunity discovery is being prepared.</h3><p>Verified announcements and official application links will appear here when connected.</p></div></div>
+        </section>
 
-    </nav>
+        <!-- COMMUNITY -->
+        <section class="view" id="communityView" data-view="communityView" hidden>
+          <div class="page-intro"><span class="eyebrow">LEARN BETTER, TOGETHER</span><h1>A thoughtful <em>learning community.</em></h1><p>A safe space for educational discussion, questions and shared understanding.</p></div>
+          <div class="community-intro content-panel"><div class="community-symbol">◎</div><div><h2>Learning should feel welcoming.</h2><p>Community features will open only with moderation, reporting and appropriate privacy controls in place.</p><span class="status-label status-pending">Moderated community · Not yet enabled</span></div></div>
+          <div class="community-guidelines content-panel"><h3>Community principles</h3><ul><li>Be respectful and helpful.</li><li>Discuss learning, not private personal details.</li><li>Credit original sources and respect copyright.</li><li>Report unsafe, abusive or misleading content.</li><li>No unsolicited private contact with other learners.</li></ul></div>
+        </section>
 
+        <!-- PROFILE / AUTH -->
+        <section class="view" id="profileView" data-view="profileView" hidden>
+          <div class="page-intro"><span class="eyebrow">YOUR ACCOUNT</span><h1>Your learning, <em>your way.</em></h1><p>Manage your account and learning preferences.</p></div>
+          <div class="profile-layout">
+            <section class="content-panel profile-card"><div class="profile-identity"><div class="profile-avatar" id="profileAvatar">G</div><div><h2 id="profileDisplayName">Guest learner</h2><p id="profileEmail">Explore Study Verse without an account.</p><span class="status-label" id="profileRoleLabel">GUEST</span></div></div>
+              <div id="authForms">
+                <div class="auth-tabs"><button class="auth-tab active" type="button" id="loginTab" onclick="showAuthMode('login')">Sign in</button><button class="auth-tab" type="button" id="registerTab" onclick="showAuthMode('register')">Create account</button></div>
+                <form id="loginForm" class="auth-form" onsubmit="loginStudent(event)"><div class="field-group"><label for="loginEmail">Email address</label><input id="loginEmail" class="form-control" type="email" autocomplete="email" required placeholder="you@example.com"></div><div class="field-group"><label for="loginPassword">Password</label><input id="loginPassword" class="form-control" type="password" autocomplete="current-password" required minlength="6" placeholder="Your password"></div><button class="button button-primary button-full" type="submit" id="loginButton">Sign in securely</button><button class="text-button auth-helper" type="button" onclick="resetStudentPassword()">Forgot password?</button><p class="form-message" id="loginMessage" role="status"></p></form>
+                <form id="registerForm" class="auth-form" hidden onsubmit="registerStudent(event)"><div class="field-group"><label for="registerName">Preferred name</label><input id="registerName" class="form-control" type="text" autocomplete="name" maxlength="80" required placeholder="Your name"></div><div class="field-group"><label for="registerEmail">Email address</label><input id="registerEmail" class="form-control" type="email" autocomplete="email" required placeholder="you@example.com"></div><div class="field-group"><label for="registerPassword">Create password</label><input id="registerPassword" class="form-control" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></div><label class="check-row"><input type="checkbox" id="registerTerms" required><span>I agree to the platform terms and privacy information.</span></label><button class="button button-primary button-full" type="submit" id="registerButton">Create account</button><p class="form-message" id="registerMessage" role="status"></p><p class="micro-copy">Only provide information needed for your learning account. Do not use another person's email address.</p></form>
+              </div>
+              <div id="signedInPanel" hidden><div class="profile-details"><div><span>ACCOUNT STATUS</span><strong id="profileAccountStatus">Signed in</strong></div><div><span>LEARNING SYSTEM</span><strong id="profileCurriculumSummary">Not selected</strong></div></div><button class="button button-secondary button-full" type="button" onclick="navigateTo('settingsView')">Learning preferences</button><button class="button button-quiet button-full" type="button" onclick="logoutStudent()">Sign out</button></div>
+            </section>
+            <section class="content-panel profile-preferences"><span class="eyebrow">PERSONALISE YOUR SPACE</span><h3>Learning preferences</h3><div class="field-group"><label for="profileLanguage">Preferred language</label><select id="profileLanguage" class="form-control"><option>English</option><option>Hindi</option><option>Urdu</option><option>Arabic</option><option>French</option><option>Spanish</option><option>German</option><option>Bengali</option><option>Kashmiri</option></select></div><div class="field-group"><label for="profileCountry">Country or region</label><select id="profileCountry" class="form-control"><option value="">Select country</option><option>India</option><option>United States</option><option>United Kingdom</option><option>Canada</option><option>Australia</option><option>Pakistan</option><option>Bangladesh</option><option>Nepal</option><option>Other</option></select></div><button class="button button-primary button-full" type="button" onclick="saveProfilePreferences()">Save preferences</button><p class="form-message" id="profilePreferencesMessage" aria-live="polite"></p></section>
+          </div>
+          <section class="content-panel role-dashboard-panel" id="roleDashboardPanel" hidden><div class="panel-heading"><div><span class="eyebrow">ACCOUNT WORKSPACE</span><h3 id="roleDashboardTitle">Your dashboard</h3></div></div><div id="studentDashboardAccess" hidden><p>Your learning tools and saved materials are available from the navigation.</p></div><div id="adminDashboardAccess" data-admin-only hidden><p>Authorised administration tools will appear here.</p><button class="button button-secondary" type="button" onclick="navigateTo('adminView')">Open administration</button></div><p class="micro-copy" id="dashboardAccessMessage"></p></section>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="view" id="settingsView" data-view="settingsView" hidden>
+          <div class="page-intro"><span class="eyebrow">MAKE IT COMFORTABLE</span><h1>Your <em>preferences.</em></h1><p>Adjust how Study Verse looks and how it supports your learning.</p></div>
+          <div class="settings-grid"><section class="content-panel"><h3>Appearance</h3><p>Choose a theme that's comfortable for you.</p><div class="setting-choice"><button class="filter-chip" type="button" onclick="setTheme('dark')">Dark theme</button><button class="filter-chip" type="button" onclick="setTheme('light')">Light theme</button><button class="filter-chip" type="button" onclick="setTheme('system')">System default</button></div></section><section class="content-panel"><h3>Personalisation</h3><p>Learning recommendations can use the curriculum and activity you choose to save.</p><button class="button button-secondary" type="button" onclick="resetLearningPreferences()">Reset learning preferences</button></section><section class="content-panel"><h3>Privacy & account</h3><p>Review account and data controls. Account deletion and data export require secure backend support.</p><p class="micro-copy">Never share your password or verification codes with anyone.</p></section></div>
+        </section>
+
+        <!-- ADMIN -->
+        <section class="view" id="adminView" data-view="adminView" hidden data-admin-only>
+          <div class="page-intro"><span class="eyebrow">PLATFORM MANAGEMENT</span><h1>Manage with <em>care.</em></h1><p>Administration tools are restricted to authorised accounts and server-enforced permissions.</p></div>
+          <div class="admin-tabs"><button class="filter-chip active" type="button" onclick="showAdminPanel('adminOverview',this)">Overview</button><button class="filter-chip" type="button" onclick="showAdminPanel('adminResources',this)">Resources</button><button class="filter-chip" type="button" onclick="showAdminPanel('adminFounder',this)">Founder profile</button><button class="filter-chip" type="button" onclick="showAdminPanel('adminStudents',this)">Accounts</button></div>
+          <section class="content-panel admin-panel" id="adminOverview"><div class="panel-heading"><div><span class="eyebrow">SYSTEM OVERVIEW</span><h3>Platform status</h3></div></div><div id="adminSystemStatus" class="notice-panel"><span>ⓘ</span><p>Live metrics will be shown only when sourced from the connected backend. No sample counts are presented as real users.</p></div><button class="button button-secondary" type="button" onclick="refreshAdminDashboard()">Refresh status</button></section>
+          <section class="content-panel admin-panel" id="adminResources" hidden><div class="panel-heading"><div><span class="eyebrow">CONTENT MANAGEMENT</span><h3>Publish a learning resource</h3></div></div><form id="resourceUploadForm" onsubmit="uploadStudyResource(event)"><div class="field-group"><label for="resourceTitle">Resource title</label><input id="resourceTitle" class="form-control" required maxlength="180"></div><div class="field-group"><label for="resourceDescription">Description</label><textarea id="resourceDescription" class="form-control" rows="3" maxlength="1000"></textarea></div><div class="field-row"><div class="field-group"><label for="resourceSubject">Subject</label><input id="resourceSubject" class="form-control" required maxlength="100"></div><div class="field-group"><label for="resourceLevel">Level</label><input id="resourceLevel" class="form-control" maxlength="80" placeholder="e.g. Class 10"></div></div><div class="field-row"><div class="field-group"><label for="resourceType">Resource type</label><select id="resourceType" class="form-control"><option value="notes">Notes</option><option value="paper">Question paper</option><option value="guide">Study guide</option><option value="syllabus">Syllabus</option><option value="worksheet">Worksheet</option><option value="video">Video link</option></select></div><div class="field-group"><label for="resourceFile">File (if applicable)</label><input id="resourceFile" class="form-control" type="file" accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"></div></div><label class="check-row"><input id="resourceVerified" type="checkbox"><span>Source has been checked and verification details are recorded.</span></label><button class="button button-primary" type="submit">Submit resource</button><p class="form-message" id="resourceUploadMessage" aria-live="polite"></p></form><div id="adminResourceList"></div></section>
+          <section class="content-panel admin-panel" id="adminFounder" hidden><div class="panel-heading"><div><span class="eyebrow">ABOUT THE FOUNDER</span><h3>Founder profile</h3></div></div><form id="founderEditorForm" onsubmit="saveFounderProfile(event)"><div class="field-group"><label for="founderNameInput">Name</label><input id="founderNameInput" class="form-control" maxlength="100" value="Adnan Manzoor"></div><div class="field-group"><label for="founderDesignationInput">Designation</label><input id="founderDesignationInput" class="form-control" maxlength="120" value="Founder, Study Verse"></div><div class="field-group"><label for="founderBiographyInput">Biography</label><textarea id="founderBiographyInput" class="form-control" rows="4" maxlength="1500" placeholder="A short, factual introduction."></textarea></div><div class="field-group"><label for="founderVisionInput">Vision</label><textarea id="founderVisionInput" class="form-control" rows="3" maxlength="1000"></textarea></div><div class="field-group"><label for="founderMissionInput">Mission</label><textarea id="founderMissionInput" class="form-control" rows="3" maxlength="1000"></textarea></div><div class="field-row"><div class="field-group"><label for="founderWebsiteInput">Website</label><input id="founderWebsiteInput" class="form-control" type="url"></div><div class="field-group"><label for="founderInstagramInput">Instagram URL</label><input id="founderInstagramInput" class="form-control" type="url"></div></div><label class="check-row"><input type="checkbox" id="founderPublishToggle"><span>Show founder profile publicly</span></label><button class="button button-primary" id="founderSaveButton" type="submit">Save founder profile</button><p class="form-message" id="founderSaveMessage" aria-live="polite"></p></form></section>
+          <section class="content-panel admin-panel" id="adminStudents" hidden><div class="panel-heading"><div><span class="eyebrow">ACCOUNT OVERSIGHT</span><h3>Registered accounts</h3></div></div><div class="library-search"><span>⌕</span><input id="adminStudentSearch" type="search" placeholder="Search accounts..." oninput="filterAdminStudents()"></div><div id="adminStudentsList" class="admin-list"></div></section>
+        </section>
+
+        <!-- ABOUT / FOUNDER -->
+        <section class="view" id="aboutView" data-view="aboutView" hidden>
+          <div class="page-intro"><span class="eyebrow">OUR PURPOSE</span><h1>Learning has <em>no borders.</em></h1><p>Study Verse is being built as an accessible, student-focused learning ecosystem for learners around the world.</p></div>
+          <section class="about-brand-panel content-panel"><div class="about-brand-mark"><span class="brand-mark"><span></span><span></span><span></span></span></div><div><span class="eyebrow">STUDY VERSE</span><h2>Learn. Explore. Evolve.</h2><p>A connected space for discovering knowledge, understanding concepts and building lifelong learning habits.</p></div></section>
+          <section class="founder-profile-card content-panel" id="founderPublicCard"><div class="founder-avatar" id="founderPublicImage" aria-label="Founder profile image">AM</div><div class="founder-copy"><span class="eyebrow">A NOTE FROM THE FOUNDER</span><h2 id="founderPublicName">Adnan Manzoor</h2><p class="founder-designation" id="founderPublicDesignation">Founder, Study Verse</p><p id="founderPublicBiography">Study Verse is guided by a vision to make useful, accessible learning support easier to discover and use.</p><div class="founder-statement"><span>THE VISION</span><p id="founderPublicVision">A worldwide AI-powered learning ecosystem for every learner.</p></div><div class="founder-statement"><span>THE MISSION</span><p id="founderPublicMission">Build an inclusive, student-focused platform where learning tools are understandable, responsible and genuinely useful.</p></div><div id="founderPublicSocialLinks" class="social-links"></div></div></section>
+          <div class="about-principles"><div><span>01</span><h3>Useful by design</h3><p>Features should solve real learning problems.</p></div><div><span>02</span><h3>Open to everyone</h3><p>Learning should be adaptable across regions and levels.</p></div><div><span>03</span><h3>Trust comes first</h3><p>Be honest about sources, privacy and platform capabilities.</p></div></div>
+        </section>
+
+        <!-- NOTIFICATIONS DIALOG -->
+        <dialog class="app-dialog" id="notificationsDialog"><div class="dialog-heading"><div><span class="eyebrow">YOUR UPDATES</span><h2>Notifications</h2></div><button class="icon-button" type="button" onclick="closeDialog('notificationsDialog')" aria-label="Close">×</button></div><div class="empty-state-inline"><span>♧</span><p>You're all caught up. Relevant learning updates will appear here.</p></div></dialog>
+        <dialog class="app-dialog search-dialog" id="globalSearchDialog"><div class="dialog-heading"><div><span class="eyebrow">SEARCH STUDY VERSE</span><h2>What are you looking for?</h2></div><button class="icon-button" type="button" onclick="closeDialog('globalSearchDialog')" aria-label="Close">×</button></div><form class="global-search-form" onsubmit="submitGlobalSearch(event)"><span>⌕</span><input id="globalSearchInput" type="search" placeholder="Search subjects, resources and topics..." autocomplete="off"><button class="button button-primary" type="submit">Search</button></form><div id="globalSearchResults" class="global-search-results"><p class="micro-copy">Search across available learning content.</p></div></dialog>
+      </main>
+
+      <footer class="app-footer"><a class="footer-brand" href="#" onclick="navigateTo('homeView');return false;">study<span>verse</span></a><span>Learn · Explore · Evolve</span><span>Built for curious minds, everywhere.</span><button type="button" class="text-button" onclick="navigateTo('aboutView')">About</button></footer>
+    </div>
   </div>
 
-  <!-- GLOBAL NOTIFICATION / TOAST -->
-  <div id="uiToast" class="toast"
-    role="status" aria-live="polite"></div>
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile navigation">
+    <button class="mobile-nav-item active" type="button" data-nav="homeView" onclick="navigateTo('homeView',this)"><span>⌂</span><small>Home</small></button>
+    <button class="mobile-nav-item" type="button" data-nav="exploreView" onclick="navigateTo('exploreView',this)"><span>⌕</span><small>Explore</small></button>
+    <button class="mobile-nav-item mobile-ai-nav" type="button" data-nav="aiView" onclick="navigateTo('aiView',this)"><span>✳</span><small>AI Mentor</small></button>
+    <button class="mobile-nav-item" type="button" data-nav="libraryView" onclick="navigateTo('libraryView',this)"><span>▤</span><small>Library</small></button>
+    <button class="mobile-nav-item" type="button" data-nav="profileView" onclick="navigateTo('profileView',this)"><span>◉</span><small>Profile</small></button>
+  </nav>
 
-  <!-- SUPABASE CLIENT MUST LOAD BEFORE core.js -->
+  <div class="mobile-menu-backdrop" id="mobileMenuBackdrop" onclick="closeMobileMenu()" hidden></div>
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+  <div class="global-loading" id="globalLoading" hidden><span class="loading-spinner"></span><span id="globalLoadingText">Please wait…</span></div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- APPLICATION LOGIC -->
-  <script src="core.js"></script>
-
+  <script src="core.js" defer></script>
 </body>
 </html>
-
